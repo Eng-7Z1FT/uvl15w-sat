@@ -1,0 +1,303 @@
+<title>رابط UVL-15W</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one narrow column like a handheld's front panel — status strip, actions, readouts, zones, raw log */
+:root{
+  --bg:#eef1ee; --panel:#ffffff; --fg:#17201b; --muted:#5d6b63; --line:#cfd8d2;
+  --accent:#0f7a52; --accent-fg:#ffffff; --lcd:#dfe9d8; --lcd-fg:#1d2b17;
+  --ok:#0f7a52; --warn:#a15c00; --bad:#b3261e;
+  --f-body:"IBM Plex Sans Arabic",Tahoma,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1512; --panel:#18211c; --fg:#e4ece6; --muted:#93a39a; --line:#2b3831;
+  --accent:#3fcf8e; --accent-fg:#06140d; --lcd:#1f2d1c; --lcd-fg:#c9eab0;
+  --ok:#3fcf8e; --warn:#f0a945; --bad:#ff8a80; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1512; --panel:#18211c; --fg:#e4ece6; --muted:#93a39a; --line:#2b3831;
+  --accent:#3fcf8e; --accent-fg:#06140d; --lcd:#1f2d1c; --lcd-fg:#c9eab0;
+  --ok:#3fcf8e; --warn:#f0a945; --bad:#ff8a80; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 40px}
+.wrap{max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font-size:1.5rem;margin:0;text-wrap:balance}
+h2{font-size:1.05rem;margin:8px 0 0}
+.sub,.note{color:var(--muted);margin:0;font-size:.95rem}
+.status{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--muted);flex:none}
+.status[data-s="on"] .dot{background:var(--ok)} .status[data-s="err"] .dot{background:var(--bad)} .status[data-s="busy"] .dot{background:var(--warn)}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+button,.filebtn{font:inherit;font-weight:600;border-radius:10px;padding:12px 18px;border:1px solid var(--accent);cursor:pointer;min-height:48px;background:transparent;color:var(--accent);display:inline-flex;align-items:center}
+button.primary{background:var(--accent);color:var(--accent-fg)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,.filebtn:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.filebtn input{position:absolute;width:1px;height:1px;opacity:0}
+.progress{height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+.progress span{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.lcd{background:var(--lcd);color:var(--lcd-fg);border-radius:12px;padding:16px;display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0}
+.lcd dt{font-size:.85rem;opacity:.8}
+.lcd dd{margin:0;font-family:var(--f-mono);font-variant-numeric:tabular-nums;direction:ltr;text-align:left;min-width:0;overflow-wrap:anywhere}
+.pill{display:inline-block;font-family:var(--f-body);font-size:.85rem;padding:0 10px;border-radius:99px;border:1px solid currentColor}
+.empty{grid-column:1/-1;margin:0;opacity:.8}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.stat b{display:block;font-family:var(--f-mono);font-size:1.4rem;font-variant-numeric:tabular-nums}
+.stat span{font-size:.85rem;color:var(--muted)}
+.zones{display:flex;flex-direction:column;gap:8px}
+details.zone{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+details.zone summary{cursor:pointer;padding:12px 14px;display:flex;justify-content:space-between;gap:10px;list-style:none}
+details.zone summary::-webkit-details-marker{display:none}
+details.zone summary .n{color:var(--muted);font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.tbl{overflow-x:auto;border-top:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:.85rem}
+th,td{padding:6px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+td.m{font-family:var(--f-mono);direction:ltr;text-align:left;font-variant-numeric:tabular-nums}
+th{color:var(--muted);font-weight:600}
+.log{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;font-family:var(--f-mono);font-size:.78rem;direction:ltr;text-align:left;
+  max-height:220px;overflow:auto;white-space:pre-wrap;word-break:break-all;margin:0}
+.warnbox{border:1px solid var(--warn);border-radius:10px;padding:12px 14px;font-size:.95rem}
+.warnbox strong{color:var(--warn)}
+</style>
+
+<div class="wrap" dir="rtl">
+  <header>
+    <h1>رابط جهاز TYT UVL-15W</h1>
+    <p class="sub">النسخة الثانية: قراءة معلومات الجهاز وذاكرته كاملة عبر البلوتوث. لا تكتب أي شيء في الجهاز.</p>
+  </header>
+
+  <div id="nobt" class="warnbox" hidden><strong>البلوتوث غير متاح في هذه الصفحة.</strong> افتحها في Chrome على أندرويد، وتأكد أن البلوتوث والموقع مفعّلان.</div>
+
+  <div class="status" id="status" data-s="off"><span class="dot"></span><span id="statusText">غير متصل</span></div>
+
+  <div class="actions">
+    <button class="primary" id="btnConnect">اتصل بالجهاز</button>
+    <button id="btnInfo" disabled>اقرأ المعلومات</button>
+    <button id="btnRead" disabled>اقرأ الذاكرة كاملة</button>
+  </div>
+  <div class="progress" id="prog" hidden><span></span></div>
+
+  <h2>معلومات الجهاز</h2>
+  <dl class="lcd" id="info"><p class="empty">اتصل بالجهاز ثم اضغط «اقرأ المعلومات».</p></dl>
+
+  <h2>الذاكرة</h2>
+  <div id="memEmpty" class="note">اضغط «اقرأ الذاكرة كاملة». تأخذ القراءة دقيقة إلى دقيقتين، وبعدها يعيد الجهاز تشغيل نفسه وهذا طبيعي.</div>
+  <div id="mem" hidden>
+    <div class="stats">
+      <div class="stat"><b id="stUsed">0</b><span>قناة مستخدمة</span></div>
+      <div class="stat"><b id="stFree">0</b><span>قناة فاضية</span></div>
+      <div class="stat"><b id="stZones">0</b><span>منطقة فيها قنوات</span></div>
+    </div>
+    <p class="note" id="freeRanges"></p>
+    <div class="actions"><button id="btnSave">احفظ النسخة الاحتياطية</button></div>
+    <h2>المناطق</h2>
+    <div class="zones" id="zones"></div>
+  </div>
+  <div class="actions"><label class="filebtn">افتح نسخة احتياطية محفوظة<input type="file" id="fileIn" accept=".bin,application/octet-stream"></label></div>
+
+  <h2>السجل</h2>
+  <pre class="log" id="log"></pre>
+  <div class="actions"><button id="btnCopy">انسخ السجل</button></div>
+  <p class="note">إذا ظهر شيء غريب، انسخ السجل والصقه في المحادثة.</p>
+</div>
+
+<script>
+/* ===== Protocol core (TYT UVL-15W comm protocol V3.0) ===== */
+const MEM_START=0x8000, MEM_END=0x21000, MEM_SIZE=MEM_END-MEM_START;
+function escapeByte(b,out){const t=(b+0x80)&0xFF; if(t>0xF9){out.push(0xFF,t&0x0F)} else out.push(t)}
+function buildFrame(cmd,data){
+  const out=[0xFE,0xFE,0xEE,0xEF,cmd]; let s=0;
+  for(const b of data){s=(s+b)&0xFF;escapeByte(b,out)}
+  escapeByte((0x100-s)&0xFF,out); out.push(0xFD); return new Uint8Array(out);
+}
+function unescapeBytes(arr){const r=[];for(let i=0;i<arr.length;i++){if(arr[i]!==0xFF)r.push((arr[i]+0x80)&0xFF);else{r.push((0xF0+arr[i+1]+0x80)&0xFF);i++}}return r}
+const be32=a=>[(a>>>24)&255,(a>>>16)&255,(a>>>8)&255,a&255];
+const ascii=a=>Array.from(a,b=>b>=0x20&&b<0x7F?String.fromCharCode(b):'').join('').trim();
+const asciiBytes=s=>Array.from(s,c=>c.charCodeAt(0));
+/* Frame assembler: FE..FE EF EE <cmd> <escaped data> <escaped lrc> FD. FE and FD never occur inside escaped data. */
+function makeAssembler(onFrame){
+  let buf=[];
+  return function push(bytes){
+    for(const b of bytes)buf.push(b);
+    for(;;){
+      let h=-1; for(let i=0;i+2<buf.length;i++){if(buf[i]===0xFE&&buf[i+1]===0xEF&&buf[i+2]===0xEE){h=i;break}}
+      if(h<0){if(buf.length>8192)buf=[];return}
+      const end=buf.indexOf(0xFD,h+4); if(end<0)return;
+      const cmd=buf[h+3]; const body=unescapeBytes(buf.slice(h+4,end)); buf=buf.slice(end+1);
+      const data=body.slice(0,-1), lrc=body[body.length-1];
+      onFrame(cmd,data,((data.reduce((a,b)=>a+b,0)+lrc)&0xFF)===0);
+    }
+  };
+}
+function parseE1(d){
+  const s=Array.from(d,b=>b>=0x20&&b<0x7F?String.fromCharCode(b):'\u0000').join('');
+  const i={model:ascii(d.slice(0,7)),readLock:d[10],writeLock:d[11],fw:ascii(d.slice(12,20))};
+  const bl=s.indexOf('UVL',20); if(bl>=0)i.boot=s.slice(bl,bl+16).replace(/\u0000/g,'').trim();
+  const hw=s.slice(36).match(/\d\.\d{2}\.\d{2}/); if(hw)i.hw=hw[0];
+  const sn=s.match(/\d{8,20}(?=\u0000*$)/); if(sn)i.sn=sn[0];
+  return i;
+}
+
+/* ===== Memory map (TYT UVL-15W data storage V1.0) ===== */
+const A=addr=>addr-MEM_START;
+const MODES=['FM','FM-N','AM','AM-N'], POWERS=['منخفض','متوسط','عالٍ','—'];
+const CTCSS=[67.0,69.3,71.9,74.4,77.0,79.7,82.5,85.4,88.5,91.5,94.8,97.4,100.0,103.5,107.2,110.9,114.8,118.8,123.0,127.3,131.8,136.5,141.3,146.2,151.4,156.7,159.8,162.2,165.5,167.9,171.3,173.8,177.3,179.9,183.5,186.2,189.9,192.8,196.6,199.5,203.5,206.5,210.7,218.1,225.7,229.1,233.6,241.8,250.3,254.1];
+const DTCS=['023','025','026','031','032','036','043','047','051','053','054','065','071','072','073','074','114','115','116','122','125','131','132','134','143','145','152','155','156','162','165','172','174','205','212','223','225','226','243','244','245','246','251','252','255','261','263','265','266','271','274','306','311','315','325','331','332','343','346','351','356','364','365','371','411','412','413','423','431','432','445','446','452','454','455','462','464','465','466','503','506','516','523','526','532','546','565','606','612','624','627','631','632','654','662','664','703','712','723','731','732','734','743','754'];
+const utf8=new TextDecoder('utf-8');
+const cstr=b=>{let n=b.indexOf(0);if(n<0)n=b.length;let t=b.slice(0,n);while(t.length&&t[t.length-1]===0xFF)t=t.slice(0,-1);return utf8.decode(t).trim()};
+const rd32=(m,o)=>((m[o]<<24)|(m[o+1]<<16)|(m[o+2]<<8)|m[o+3])>>>0;
+const mhz=v=>(v/1e6).toFixed(5).replace(/0{1,2}$/,'');
+function toneText(type,idx){if(type===1)return CTCSS[idx]!=null?CTCSS[idx].toFixed(1):'?';if(type===2)return DTCS[idx]!=null?'D'+DTCS[idx]+'N':'?';return '—'}
+function parseChannel(m,ch){ // ch: 0..999
+  const o=A(0x8000)+ch*48, r=m.slice(o,o+48);
+  const b37=r[0x25], b38=r[0x26], b39=r[0x27];
+  return {ch:ch+1,rx:rd32(r,0),tx:rd32(r,4),name:cstr(r.slice(8,32)),
+    mode:MODES[b37&7]||'?',power:POWERS[(b37>>3)&3],rxOnly:!!(b37&0x20),
+    txTone:toneText((b38>>5)&7,r[0x28]),rxTone:toneText(b39&7,r[0x29])};
+}
+function parseMemory(m){
+  const valid=[];for(let ch=0;ch<1000;ch++){const v=m[A(0x15000)+(ch>>3)];valid.push(!!(v&(1<<(ch&7))))}
+  const channels=[];for(let ch=0;ch<1000;ch++)if(valid[ch])channels.push(parseChannel(m,ch));
+  const zones=[];
+  for(let z=0;z<16;z++){
+    const name=cstr(m.slice(A(0x1B000)+z*24,A(0x1B000)+z*24+24))||('منطقة '+z);
+    const members=[];
+    for(let k=0;k<128;k++){const o=A(0x18000)+z*0x100+k*2;const n=m[o]|(m[o+1]<<8);if(n!==0xFFFF&&n<1000)members.push(n)}
+    zones.push({z,name,members});
+  }
+  const free=[];let s=-1;
+  for(let ch=0;ch<=1000;ch++){if(ch<1000&&!valid[ch]){if(s<0)s=ch}else if(s>=0){free.push([s+1,ch]);s=-1}}
+  return {valid,channels,zones,free,lang:m[A(0x15400)],zoneA:m[A(0x1B200)],zoneB:m[A(0x1B201)]};
+}
+
+/* ===== UI helpers ===== */
+const $=id=>document.getElementById(id);
+const hex=a=>Array.from(a,b=>b.toString(16).padStart(2,'0').toUpperCase()).join(' ');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function log(m){const t=new Date().toLocaleTimeString('en-GB');$('log').textContent+=`[${t}] ${m}\n`;$('log').scrollTop=1e9}
+function setStatus(s,txt){$('status').dataset.s=s;$('statusText').textContent=txt}
+function setProg(f){$('prog').hidden=f==null;if(f!=null)$('prog').firstElementChild.style.width=(f*100).toFixed(1)+'%'}
+function lockText(v){return v===0?'مفتوح':v===1?'بكلمة مرور':'غير معروف'}
+function renderInfo(i,ok){
+  const rows=[['الموديل',i.model],['إصدار البرنامج',i.fw],['إصدار العتاد',i.hw],['الرقم التسلسلي',i.sn],['موديل محمّل الإقلاع',i.boot],
+    ['قراءة الإعدادات',`<span class="pill">${lockText(i.readLock)}</span>`],['كتابة الإعدادات',`<span class="pill">${lockText(i.writeLock)}</span>`],
+    ['سلامة الرد',`<span class="pill">${ok?'سليم':'فشل التحقق'}</span>`]];
+  $('info').innerHTML=rows.map(([k,v])=>`<dt>${k}</dt><dd>${v??'—'}</dd>`).join('');
+}
+const LANGS=['الصينية المبسطة','الصينية التقليدية','الإنجليزية','الخانة الرابعة (التركية أو العربية)','الخانة الخامسة'];
+function renderMemory(m){
+  const p=parseMemory(m);
+  $('memEmpty').hidden=true;$('mem').hidden=false;
+  $('stUsed').textContent=p.channels.length;$('stFree').textContent=1000-p.channels.length;
+  $('stZones').textContent=p.zones.filter(z=>z.members.length).length;
+  const fr=p.free.slice(0,6).map(([a,b])=>a===b?a:`${a}–${b}`).join('، ');
+  $('freeRanges').textContent=(p.free.length?`أول القنوات الفاضية: ${fr}${p.free.length>6?' …':''}. `:'')+`لغة الجهاز المحفوظة: ${LANGS[p.lang]??('قيمة '+p.lang)}.`;
+  const byCh=new Map(p.channels.map(c=>[c.ch-1,c]));
+  const row=c=>`<tr><td class="m">${c.ch}</td><td>${esc(c.name)||'—'}</td><td class="m">${mhz(c.rx)}</td><td class="m">${mhz(c.tx)}</td><td class="m">${c.mode}</td><td class="m">${c.txTone}</td><td class="m">${c.rxTone}</td><td>${c.power}</td></tr>`;
+  const head='<tr><th>رقم</th><th>الاسم</th><th>استقبال</th><th>إرسال</th><th>النمط</th><th>نغمة إرسال</th><th>نغمة استقبال</th><th>القدرة</th></tr>';
+  const zoneHtml=p.zones.map(z=>{
+    const chs=z.members.map(n=>byCh.get(n)).filter(Boolean);
+    const tag=(p.zoneA===z.z?' · المنطقة الحالية A':'')+(p.zoneB===z.z?' · المنطقة الحالية B':'');
+    return `<details class="zone"><summary><span>${esc(z.name)}${tag}</span><span class="n">${z.members.length} قناة</span></summary>`+
+      (chs.length?`<div class="tbl"><table>${head}${chs.map(row).join('')}</table></div>`:'<p class="note" style="padding:0 14px 12px">فاضية، وتصلح لقنوات الأقمار.</p>')+`</details>`;
+  }).join('');
+  const all=`<details class="zone"><summary><span>كل القنوات المستخدمة</span><span class="n">${p.channels.length} قناة</span></summary><div class="tbl"><table>${head}${p.channels.map(row).join('')}</table></div></details>`;
+  $('zones').innerHTML=zoneHtml+all;
+}
+
+/* ===== BLE transport with request/response ===== */
+const SVC='00000001-ba2a-46c9-ae49-01b0961f68bb', CH_TX='00000002-ba2a-46c9-ae49-01b0961f68bb', CH_RX='00000003-ba2a-46c9-ae49-01b0961f68bb';
+let dev,tx,waiter=null,busy=false,memImage=null,verbose=true;
+const assembler=makeAssembler((cmd,data,ok)=>{
+  if(verbose)log(`← CMD=0x${cmd.toString(16).toUpperCase()} طول=${data.length} تحقق=${ok?'سليم':'فاشل'}`);
+  if(waiter){const w=waiter;waiter=null;w.resolve({cmd,data,ok})}
+});
+function request(cmd,data,timeout=3000){
+  return new Promise(async(resolve,reject)=>{
+    const t=setTimeout(()=>{waiter=null;reject(new Error('انتهت مهلة انتظار الرد'))},timeout);
+    waiter={resolve:r=>{clearTimeout(t);resolve(r)}};
+    try{const f=buildFrame(cmd,data);if(verbose)log('→ '+hex(f));await tx.writeValueWithResponse(f)}catch(e){clearTimeout(t);waiter=null;reject(e)}
+  });
+}
+async function connect(){
+  try{
+    setStatus('busy','ابحث عن الجهاز…');
+    dev=await navigator.bluetooth.requestDevice({filters:[{namePrefix:'ET25'},{services:[SVC]}],optionalServices:[SVC]});
+    dev.addEventListener('gattserverdisconnected',()=>{setStatus('off','انقطع الاتصال');$('btnInfo').disabled=$('btnRead').disabled=true;log('انقطع الاتصال')});
+    setStatus('busy','جارٍ الاتصال بـ '+dev.name+'…');
+    const svc=await (await dev.gatt.connect()).getPrimaryService(SVC);
+    tx=await svc.getCharacteristic(CH_TX);
+    const rx=await svc.getCharacteristic(CH_RX);
+    rx.addEventListener('characteristicvaluechanged',e=>assembler(new Uint8Array(e.target.value.buffer)));
+    await rx.startNotifications();
+    setStatus('on','متصل بـ '+dev.name);log('متصل وتم تفعيل الاستقبال');
+    $('btnInfo').disabled=$('btnRead').disabled=false;
+  }catch(e){setStatus('err','تعذر الاتصال: '+e.message);log('خطأ: '+e.message)}
+}
+async function handshake(){
+  const r=await request(0xE0,asciiBytes('UVL-15W'));
+  if(r.cmd!==0xE1)throw new Error('رد غير متوقع على المصافحة: '+ascii(r.data));
+  const i=parseE1(r.data);renderInfo(i,r.ok);return i;
+}
+async function readInfo(){
+  if(busy)return;busy=true;
+  try{verbose=true;await handshake();setStatus('on','متصل، وقرأنا معلومات الجهاز')}
+  catch(e){setStatus('err',e.message);log('خطأ: '+e.message)}
+  busy=false;
+}
+async function readAll(){
+  if(busy)return;busy=true;$('btnRead').disabled=$('btnInfo').disabled=true;
+  const CHUNK=256;
+  try{
+    verbose=true;setStatus('busy','مصافحة…');
+    const i=await handshake();
+    if(i.readLock===1)throw new Error('الجهاز محمي بكلمة مرور للقراءة، وهذه النسخة لا تدعمها بعد');
+    setStatus('busy','بدء القراءة…');
+    const st=await request(0xE2,[...be32(MEM_START),...be32(MEM_END)]);
+    log('رد بدء القراءة: '+ascii(st.data));
+    if(st.cmd===0xEE||!/OK/i.test(ascii(st.data)))throw new Error('الجهاز رفض بدء القراءة: '+ascii(st.data));
+    const mem=new Uint8Array(MEM_SIZE);verbose=false;
+    const t0=Date.now();
+    for(let a=MEM_START;a<MEM_END;a+=CHUNK){
+      const n=Math.min(CHUNK,MEM_END-a);let ok=false,last;
+      for(let attempt=0;attempt<4&&!ok;attempt++){
+        try{
+          const r=await request(0xE6,[...be32(a),(n>>8)&255,n&255],4000);last=r;
+          if(r.cmd===0xEE){log(`خطأ من الجهاز عند 0x${a.toString(16)}: ${ascii(r.data)}، إعادة`);continue}
+          const ra=rd32(r.data,0),rn=(r.data[4]<<8)|r.data[5];
+          if(r.cmd!==0xE4||!r.ok||ra!==a||rn!==n||r.data.length!==6+n){log(`رد غير سليم عند 0x${a.toString(16)} (CMD=0x${r.cmd.toString(16)} طول=${r.data.length})، إعادة`);continue}
+          mem.set(r.data.slice(6),a-MEM_START);ok=true;
+        }catch(e){log(`مهلة عند 0x${a.toString(16)}، إعادة (${e.message})`)}
+      }
+      if(!ok)throw new Error(`فشلت قراءة العنوان 0x${a.toString(16)} بعد 4 محاولات`);
+      const f=(a+n-MEM_START)/MEM_SIZE;setProg(f);
+      setStatus('busy',`قراءة الذاكرة… ${Math.round(f*100)}٪`);
+    }
+    verbose=true;
+    log(`اكتملت القراءة: ${MEM_SIZE} بايت في ${((Date.now()-t0)/1000).toFixed(1)} ثانية`);
+    memImage=mem;try{localStorage.setItem('uvl15w_last',btoa(String.fromCharCode(...mem)))}catch(e){}
+    renderMemory(mem);
+    try{const r=await request(0xE5,asciiBytes('Read Complete'),2000);log('رد الإنهاء: '+ascii(r.data))}catch(e){log('لم يصل رد الإنهاء، وهذا لا يؤثر على البيانات')}
+    setStatus('on','اكتملت القراءة. الجهاز يعيد التشغيل الآن، فانتظر قبل الاتصال مرة ثانية');
+  }catch(e){verbose=true;setStatus('err',e.message);log('خطأ: '+e.message)}
+  setProg(null);busy=false;$('btnRead').disabled=$('btnInfo').disabled=!(dev&&dev.gatt.connected);
+}
+function saveBackup(){
+  if(!memImage)return;
+  const d=new Date(),p=n=>String(n).padStart(2,'0');
+  const name=`uvl15w-backup-${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.bin`;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([memImage],{type:'application/octet-stream'}));a.download=name;
+  document.body.appendChild(a);a.click();a.remove();log('حُفظت النسخة الاحتياطية: '+name);
+}
+$('fileIn').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;const b=new Uint8Array(await f.arrayBuffer());
+  if(b.length!==MEM_SIZE){log(`الملف حجمه ${b.length} بايت، والمتوقع ${MEM_SIZE}`);setStatus('err','هذا الملف ليس نسخة احتياطية من هذه الصفحة');return}
+  memImage=b;renderMemory(b);log('فُتحت النسخة: '+f.name);
+};
+$('btnConnect').onclick=connect;$('btnInfo').onclick=readInfo;$('btnRead').onclick=readAll;$('btnSave').onclick=saveBackup;
+$('btnCopy').onclick=async()=>{try{await navigator.clipboard.writeText($('log').textContent);$('btnCopy').textContent='تم النسخ'}catch{const r=document.createRange();r.selectNodeContents($('log'));const s=getSelection();s.removeAllRanges();s.addRange(r)}};
+if(!('bluetooth' in navigator)){$('nobt').hidden=false;$('btnConnect').disabled=true}
+try{const s=localStorage.getItem('uvl15w_last');if(s){const b=Uint8Array.from(atob(s),c=>c.charCodeAt(0));if(b.length===MEM_SIZE){memImage=b;renderMemory(b);log('عُرضت آخر قراءة محفوظة في هذا المتصفح')}}}catch(e){}
+</script>

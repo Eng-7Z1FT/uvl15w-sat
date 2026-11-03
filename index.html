@@ -1,0 +1,175 @@
+<title>رابط UVL-15W</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one narrow column like a handheld's front panel — status strip, action, info readout, raw log */
+:root{
+  --bg:#eef1ee; --panel:#ffffff; --fg:#17201b; --muted:#5d6b63; --line:#cfd8d2;
+  --accent:#0f7a52; --accent-fg:#ffffff; --lcd:#dfe9d8; --lcd-fg:#1d2b17;
+  --ok:#0f7a52; --warn:#a15c00; --bad:#b3261e;
+  --f-body:"IBM Plex Sans Arabic",Tahoma,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1512; --panel:#18211c; --fg:#e4ece6; --muted:#93a39a; --line:#2b3831;
+  --accent:#3fcf8e; --accent-fg:#06140d; --lcd:#1f2d1c; --lcd-fg:#c9eab0;
+  --ok:#3fcf8e; --warn:#f0a945; --bad:#ff8a80; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1512; --panel:#18211c; --fg:#e4ece6; --muted:#93a39a; --line:#2b3831;
+  --accent:#3fcf8e; --accent-fg:#06140d; --lcd:#1f2d1c; --lcd-fg:#c9eab0;
+  --ok:#3fcf8e; --warn:#f0a945; --bad:#ff8a80; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 40px}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font-size:1.5rem;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:0;font-size:.95rem}
+.status{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--muted);flex:none}
+.status[data-s="on"] .dot{background:var(--ok)} .status[data-s="err"] .dot{background:var(--bad)} .status[data-s="busy"] .dot{background:var(--warn)}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+button{font:inherit;font-weight:600;border-radius:10px;padding:12px 18px;border:1px solid var(--accent);cursor:pointer;min-height:48px}
+button.primary{background:var(--accent);color:var(--accent-fg)}
+button.ghost{background:transparent;color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.lcd{background:var(--lcd);color:var(--lcd-fg);border-radius:12px;padding:16px;display:grid;grid-template-columns:auto 1fr;gap:8px 16px}
+.lcd dt{font-size:.85rem;opacity:.8}
+.lcd dd{margin:0;font-family:var(--f-mono);font-variant-numeric:tabular-nums;direction:ltr;text-align:left;min-width:0;overflow-wrap:anywhere}
+.pill{display:inline-block;font-family:var(--f-body);font-size:.85rem;padding:0 10px;border-radius:99px;border:1px solid currentColor}
+.empty{grid-column:1/-1;margin:0;opacity:.8}
+h2{font-size:1rem;margin:8px 0 0;letter-spacing:.02em}
+.log{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;font-family:var(--f-mono);font-size:.8rem;direction:ltr;text-align:left;
+  max-height:260px;overflow:auto;white-space:pre-wrap;word-break:break-all;margin:0}
+.note{font-size:.9rem;color:var(--muted);margin:0}
+.warnbox{border:1px solid var(--warn);color:var(--fg);border-radius:10px;padding:12px 14px;font-size:.95rem}
+.warnbox strong{color:var(--warn)}
+</style>
+
+<div class="wrap" dir="rtl">
+  <header>
+    <h1>رابط جهاز TYT UVL-15W</h1>
+    <p class="sub">النسخة الأولى: اتصال بلوتوث وقراءة معلومات الجهاز فقط. لا تكتب أي شيء في الجهاز.</p>
+  </header>
+
+  <div id="nobt" class="warnbox" hidden><strong>البلوتوث غير متاح في هذه الصفحة.</strong> افتحها في Chrome على أندرويد من رابط يبدأ بـ https، وتأكد أن البلوتوث والموقع مفعّلان في الجوال.</div>
+
+  <div class="status" id="status" data-s="off"><span class="dot"></span><span id="statusText">غير متصل</span></div>
+
+  <div class="actions">
+    <button class="primary" id="btnConnect">اتصل بالجهاز</button>
+    <button class="ghost" id="btnInfo" disabled>اقرأ معلومات الجهاز</button>
+  </div>
+
+  <h2>معلومات الجهاز</h2>
+  <dl class="lcd" id="info">
+    <p class="empty">بعد الاتصال اضغط «اقرأ معلومات الجهاز». هذه قيم جهازك من تجربة nRF Connect كمثال:</p>
+  </dl>
+
+  <h2>السجل</h2>
+  <pre class="log" id="log"></pre>
+  <div class="actions"><button class="ghost" id="btnCopy">انسخ السجل</button></div>
+  <p class="note">إذا ظهر شيء غريب، انسخ السجل والصقه في المحادثة.</p>
+</div>
+
+<script>
+const SVC='00000001-ba2a-46c9-ae49-01b0961f68bb';
+const CH_TX='00000002-ba2a-46c9-ae49-01b0961f68bb';
+const CH_RX='00000003-ba2a-46c9-ae49-01b0961f68bb';
+
+const $=id=>document.getElementById(id);
+const hex=a=>Array.from(a,b=>b.toString(16).padStart(2,'0').toUpperCase()).join(' ');
+function log(m){const t=new Date().toLocaleTimeString('en-GB');$('log').textContent+=`[${t}] ${m}\n`;$('log').scrollTop=1e9}
+function setStatus(s,txt){$('status').dataset.s=s;$('statusText').textContent=txt}
+
+/* --- Protocol (TYT UVL-15W comm protocol V3.0) --- */
+function escapeByte(b,out){const t=(b+0x80)&0xFF; if(t>0xF9){out.push(0xFF,t&0x0F)} else out.push(t)}
+function buildFrame(cmd,data){
+  const out=[0xFE,0xFE,0xEE,0xEF,cmd]; let s=0;
+  for(const b of data){s=(s+b)&0xFF;escapeByte(b,out)}
+  escapeByte((0x100-s)&0xFF,out); out.push(0xFD); return new Uint8Array(out);
+}
+function unescape(arr){const r=[];for(let i=0;i<arr.length;i++){if(arr[i]!==0xFF)r.push((arr[i]+0x80)&0xFF);else{r.push((0xF0+arr[i+1]+0x80)&0xFF);i++}}return r}
+
+/* Collect notification chunks into full response frames: FE..FE EF EE <cmd> <escaped> <lrc> FD */
+let rxBuf=[];
+function onChunk(bytes){
+  rxBuf.push(...bytes);
+  for(;;){
+    let h=-1; for(let i=0;i+2<rxBuf.length;i++){if(rxBuf[i]===0xFE&&rxBuf[i+1]===0xEF&&rxBuf[i+2]===0xEE){h=i;break}}
+    if(h<0){if(rxBuf.length>4096)rxBuf=[];return}
+    const end=rxBuf.indexOf(0xFD,h+4); if(end<0)return;
+    const cmd=rxBuf[h+3]; const body=unescape(rxBuf.slice(h+4,end));
+    rxBuf=rxBuf.slice(end+1);
+    const data=body.slice(0,-1), lrc=body[body.length-1];
+    const ok=((data.reduce((a,b)=>a+b,0)+lrc)&0xFF)===0;
+    log(`إطار مستلم CMD=0x${cmd.toString(16).toUpperCase()} طول=${data.length} تحقق=${ok?'سليم':'فاشل'}`);
+    log('البيانات: '+hex(data));
+    handleFrame(cmd,data,ok);
+  }
+}
+const ascii=(a)=>Array.from(a,b=>b>=0x20&&b<0x7F?String.fromCharCode(b):'').join('').trim();
+function parseE1(d){
+  const s=Array.from(d,b=>b>=0x20&&b<0x7F?String.fromCharCode(b):'\u0000').join('');
+  const info={};
+  info.model=ascii(d.slice(0,7));
+  info.readLock=d[10]; info.writeLock=d[11];
+  info.fw=ascii(d.slice(12,20));
+  const bl=s.indexOf('UVL',20); if(bl>=0) info.boot=s.slice(bl,bl+16).replace(/\u0000/g,'').trim();
+  const hw=s.slice(36).match(/\d\.\d{2}\.\d{2}/); if(hw) info.hw=hw[0];
+  const sn=s.match(/\d{8,20}(?=\u0000*$)/); if(sn) info.sn=sn[0];
+  return info;
+}
+function lockText(v){return v===0?'مفتوح':v===1?'بكلمة مرور':'غير معروف'}
+function renderInfo(i,ok){
+  const rows=[['الموديل',i.model],['إصدار البرنامج',i.fw],['إصدار العتاد',i.hw],['الرقم التسلسلي',i.sn],['موديل محمّل الإقلاع',i.boot],
+    ['قراءة الإعدادات',`<span class="pill">${lockText(i.readLock)}</span>`],['كتابة الإعدادات',`<span class="pill">${lockText(i.writeLock)}</span>`],
+    ['سلامة الرد',`<span class="pill">${ok?'سليم':'فشل التحقق'}</span>`]];
+  $('info').innerHTML=rows.map(([k,v])=>`<dt>${k}</dt><dd>${v??'—'}</dd>`).join('');
+}
+function handleFrame(cmd,d,ok){
+  if(cmd===0xE1){renderInfo(parseE1(d),ok);setStatus('on','متصل، وقرأنا معلومات الجهاز')}
+  else if(cmd===0xEE){log('رسالة خطأ من الجهاز: '+ascii(d));setStatus('err','الجهاز رد بخطأ، شوف السجل')}
+}
+
+/* --- BLE --- */
+let dev,tx;
+async function connect(){
+  try{
+    setStatus('busy','ابحث عن الجهاز…');
+    dev=await navigator.bluetooth.requestDevice({filters:[{namePrefix:'ET25'},{services:[SVC]}],optionalServices:[SVC]});
+    dev.addEventListener('gattserverdisconnected',()=>{setStatus('off','انقطع الاتصال');$('btnInfo').disabled=true;log('انقطع الاتصال')});
+    setStatus('busy','جارٍ الاتصال بـ '+dev.name+'…');
+    const srv=await dev.gatt.connect();
+    const svc=await srv.getPrimaryService(SVC);
+    tx=await svc.getCharacteristic(CH_TX);
+    const rx=await svc.getCharacteristic(CH_RX);
+    rx.addEventListener('characteristicvaluechanged',e=>{const v=new Uint8Array(e.target.value.buffer);log('← '+hex(v));onChunk(v)});
+    await rx.startNotifications();
+    setStatus('on','متصل بـ '+dev.name);log('متصل وتم تفعيل الاستقبال');
+    $('btnInfo').disabled=false;
+  }catch(e){setStatus('err','تعذر الاتصال: '+e.message);log('خطأ: '+e.message)}
+}
+async function readInfo(){
+  try{
+    rxBuf=[];
+    const f=buildFrame(0xE0,[0x55,0x56,0x4C,0x2D,0x31,0x35,0x57]); // "UVL-15W" handshake
+    log('→ '+hex(f));
+    await tx.writeValueWithResponse(f);
+    setStatus('busy','بانتظار رد الجهاز…');
+  }catch(e){setStatus('err','فشل الإرسال: '+e.message);log('خطأ: '+e.message)}
+}
+$('btnConnect').onclick=connect;
+$('btnInfo').onclick=readInfo;
+$('btnCopy').onclick=async()=>{try{await navigator.clipboard.writeText($('log').textContent);$('btnCopy').textContent='تم النسخ'}catch{const r=document.createRange();r.selectNodeContents($('log'));const s=getSelection();s.removeAllRanges();s.addRange(r)}};
+
+if(!('bluetooth' in navigator)){$('nobt').hidden=false;$('btnConnect').disabled=true}
+
+/* Sample readout: the reply captured from this radio in nRF Connect (one chunk was cut off in the screenshot) */
+(function sample(){
+  const d=[0x55,0x56,0x4c,0x2d,0x31,0x35,0x57,0x5f,0x01,0x5f,0x00,0x00,0x33,0x2e,0x30,0x39,0x2e,0x32,0x31,0x20,0x5f,0x01,0x01,0x00,0x01,0x01,0x14,0x1a,0xd0,0x49,0x00,0x00,0x00,0x77,0x78,0x15,0xa4,0x3c,0x07,0x55,0x56,0x4c,0x2d,0x31,0x35,0x57,0x20,0x20,0x20,0x20,0x20,0x20,0x01,0x00,0x03,0x32,0x2e,0x30,0x35,0x2e,0x30,0x30,0x00,0x00,0x32,0x36,0x30,0x37,0x30,0x35,0x31,0x35,0x32,0x33,0x34,0x37,0x31,0x38,0,0,0,0,0,0];
+  const i=parseE1(d);
+  $('info').insertAdjacentHTML('beforeend',[['الموديل',i.model],['إصدار البرنامج',i.fw],['إصدار العتاد',i.hw],['الرقم التسلسلي',i.sn]].map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join(''));
+})();
+</script>

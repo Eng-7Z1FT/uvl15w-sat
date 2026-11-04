@@ -224,6 +224,8 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
   <div class="links"><div class="status" id="lk1" data-s="off"><span class="dot"></span><span id="lk1t">الجهاز 1: غير متصل</span></div>
     <div class="status" id="lk2" data-s="off" hidden><span class="dot"></span><span id="lk2t">الجهاز 2: غير متصل</span></div></div>
   <div class="actions"><button class="primary" id="btnSpp">اتصل عبر بلوتوث الكلاسيك (SPP)</button><button id="btnCivTest">١) اختبر التحكم (يقرأ بس)</button></div>
+  <div class="warnbox" id="sppApp" hidden><strong>داخل التطبيق ما ظهرت قائمة أجهزة SPP.</strong> افتح الصفحة في Chrome للتتبع، وكل بياناتك محفوظة هناك بعد لأنها نفس الصفحة.
+    <div class="actions" style="margin-top:10px"><button class="primary" id="btnChrome">افتح في Chrome</button></div></div>
   <p class="note">التتبع يشتغل عبر <b>بلوتوث الكلاسيك (SPP)</b> بس. أما البلوتوث العادي (زر «اتصل بالجهاز») فهو لقراءة الذاكرة وكتابتها. أول مرة: اقرن الجهاز من إعدادات بلوتوث الجوال، وسكّر أي تطبيق ثاني متصل فيه، واضغط الزر واختر الجهاز. بعدها الصفحة تتصل بنفسها لما تضغط الاختبار أو التتبع. وخلّ بلوتوث الجهاز على وضع Slave.</p>
   <p class="note" id="civNote">سوّ الاختبار أول مرة: يجرب طريقتين للتحكم (CI-V، والبروتوكول البديل)، ويقرأ التردد الحالي بدون ما يغيّر شي.</p>
   <div class="satbar">
@@ -1164,10 +1166,18 @@ async function sppClose(which){const L=which===2?r2:spp;if(!L)return;if(which===
   try{L.writer.releaseLock()}catch(e){}
   try{await L.port.close()}catch(e){log('تعذر إغلاق المنفذ: '+e.message)}
   log(`فصلت الجهاز ${which}`);sppUi()}
+/* Inside the installed Android app (Trusted Web Activity) Chrome may not show the classic-Bluetooth picker.
+   Offer to open the same page in a normal Chrome tab, where SPP is known to work. */
+const inApp=()=>(document.referrer||'').startsWith('android-app://')||matchMedia('(display-mode: standalone)').matches;
+const chromeUrl=()=>'intent://'+location.host+location.pathname+'#Intent;scheme=https;package=com.android.chrome;end';
+function sppAppHint(){if(!inApp())return;$('sppApp').hidden=false}
 $('btnSpp').onclick=async()=>{
   if(spp){await sppClose(1);return}
-  try{await sppConnect();civNote('متصل عبر SPP. اضغط «اختبر التحكم».')}catch(e){civNote('تعذر اتصال SPP: '+e.message);log('SPP: '+e.message)}
+  const t0=Date.now();
+  try{await sppConnect();civNote('متصل عبر SPP. اضغط «اختبر التحكم».')}
+  catch(e){civNote('تعذر اتصال SPP: '+e.message);log('SPP: '+e.message+(Date.now()-t0<1500?' (القائمة ما ظهرت)':''));if(Date.now()-t0<1500)sppAppHint()}
 };
+$('btnChrome').onclick=()=>{location.href=chromeUrl()};
 $('btnSpp2').onclick=async()=>{
   if(r2){await sppClose(2);r2Note('');return}
   try{const port=await pickSppPort();if(spp&&spp.port===port)throw new Error('هذا نفس الجهاز الأول، اختر الجهاز الثاني');

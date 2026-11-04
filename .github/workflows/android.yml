@@ -26,14 +26,15 @@ jobs:
           KS_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
         run: |
           if [ -z "$KS_B64" ]; then
-            echo "::error::Add the repository secrets ANDROID_KEYSTORE_B64 and ANDROID_KEYSTORE_PASS (Settings > Secrets and variables > Actions)"
+            echo "::error::Add the repository secret ANDROID_KEYSTORE_B64 (Settings > Secrets and variables > Actions)"
             exit 1
           fi
           echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
       - name: Build
         env:
           KS_PATH: ${{ runner.temp }}/release.jks
-          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+          # the password alone is useless without the keystore, which lives only in the ANDROID_KEYSTORE_B64 secret
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS || 'No5IsnUDGqDC3EVWjfJHPLQe' }}
         run: gradle -p android assembleRelease --no-daemon
       - name: Rename
         run: cp android/app/build/outputs/apk/release/app-release.apk uvl15w-sat.apk

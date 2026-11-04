@@ -1,0 +1,25 @@
+// Trusted Web Activity: the installed app opens the GitHub Pages site inside Chrome,
+// so Web Bluetooth (BLE) and Web Serial (classic Bluetooth SPP) work exactly as on the website.
+plugins { id 'com.android.application' }
+android {
+    namespace 'io.github.eng7z1ft.uvl15wsat'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'io.github.eng7z1ft.uvl15wsat'
+        minSdk 23
+        targetSdk 34
+        versionCode((System.getenv('GITHUB_RUN_NUMBER') ?: '1') as int)
+        versionName "1.0.${System.getenv('GITHUB_RUN_NUMBER') ?: '0'}"
+    }
+    signingConfigs {
+        release {
+            storeFile file(System.getenv('KS_PATH') ?: 'missing.jks')
+            storePassword System.getenv('KS_PASS')
+            keyAlias 'uvl15w'
+            keyPassword System.getenv('KS_PASS')
+        }
+    }
+    buildTypes { release { minifyEnabled false; signingConfig signingConfigs.release } }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+dependencies { implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0' }

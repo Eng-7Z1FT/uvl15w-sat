@@ -65,6 +65,10 @@ public class AppBridge {
     @JavascriptInterface
     public void sdrGain(int g) { MainActivity m = (MainActivity) act; m.sdrGain = g; if (m.sdr.isRunning()) m.sdr.setGain(g); }
 
+    /** SSTV: send the receiver's audio to the page too. */
+    @JavascriptInterface
+    public void sdrTap(boolean on) { ((MainActivity) act).tapOn = on; }
+
     @JavascriptInterface
     public void sdrStop() { act.runOnUiThread(() -> ((MainActivity) act).stopSdr()); }
 

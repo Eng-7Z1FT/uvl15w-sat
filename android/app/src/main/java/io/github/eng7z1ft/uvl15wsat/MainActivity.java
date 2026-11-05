@@ -19,6 +19,8 @@ import android.webkit.WebViewClient;
  *  file saving and notifications through two JavaScript bridges (see android-bridge.js on the site). */
 public class MainActivity extends Activity {
     static final String SITE = "https://eng-7z1ft.github.io/uvl15w-sat/";
+    static final int REQ_MIC = 17;
+    android.webkit.PermissionRequest micReq;
     static final int REQ_FILE = 11, REQ_GEO = 13, REQ_SDR = 1234, SDR_PORT = 14423;
     WebView web;
     BtBridge bt;
@@ -66,6 +68,16 @@ public class MainActivity extends Activity {
                 }
             }
             @Override
+            public void onPermissionRequest(final android.webkit.PermissionRequest req) {
+                runOnUiThread(() -> {
+                    boolean audio = false;
+                    for (String r : req.getResources()) if (android.webkit.PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(r)) audio = true;
+                    if (!audio || !req.getOrigin().toString().startsWith("https://eng-7z1ft.github.io")) { req.deny(); return; }
+                    if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) req.grant(new String[]{android.webkit.PermissionRequest.RESOURCE_AUDIO_CAPTURE});
+                    else { micReq = req; requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQ_MIC); }
+                });
+            }
+            @Override
             public boolean onShowFileChooser(WebView v, ValueCallback<Uri[]> cb, FileChooserParams p) {
                 if (fileCb != null) fileCb.onReceiveValue(null);
                 fileCb = cb;
@@ -109,6 +121,11 @@ public class MainActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int req, String[] perms, int[] res) {
         super.onRequestPermissionsResult(req, perms, res);
+        if (req == REQ_MIC && micReq != null) {
+            if (res.length > 0 && res[0] == PackageManager.PERMISSION_GRANTED) micReq.grant(new String[]{android.webkit.PermissionRequest.RESOURCE_AUDIO_CAPTURE}); else micReq.deny();
+            micReq = null;
+            return;
+        }
         if (req == REQ_GEO && geoCb != null) {
             boolean ok = res.length > 0 && res[0] == PackageManager.PERMISSION_GRANTED;
             geoCb.invoke(geoOrigin, ok, false);
@@ -148,8 +165,28 @@ public class MainActivity extends Activity {
     void releaseTrack() { if (track != null) { try { track.stop(); track.release(); } catch (Exception ignored) { } track = null; } }
 
     long specAt, levelAt;
+    /** SSTV: a copy of the demodulated audio for the page, 32 kHz averaged down to 10.667 kHz, sent every ~0.3 s. */
+    volatile boolean tapOn;
+    final short[] tapBuf = new short[4096]; int tapN, tapAcc, tapK;
+    void tap(short[] pcm, int n) {
+        for (int i = 0; i < n; i++) {
+            tapAcc += pcm[i];
+            if (++tapK == 3) { tapBuf[tapN++] = (short) (tapAcc / 3); tapAcc = 0; tapK = 0;
+                if (tapN == 3200) {
+                    byte[] b = new byte[tapN * 2];
+                    for (int k = 0; k < tapN; k++) { b[2 * k] = (byte) tapBuf[k]; b[2 * k + 1] = (byte) (tapBuf[k] >> 8); }
+                    tapN = 0;
+                    final String js = "window.__sdrAudio&&window.__sdrAudio('" + android.util.Base64.encodeToString(b, android.util.Base64.NO_WRAP) + "'," + (SdrRx.AUD / 3.0) + ")";
+                    runOnUiThread(() -> web.evaluateJavascript(js, null));
+                }
+            }
+        }
+    }
     final SdrRx.Out rxOut = new SdrRx.Out() {
-        @Override public void audio(short[] pcm, int n) { android.media.AudioTrack t = track; if (t != null) t.write(pcm, 0, n); }
+        @Override public void audio(short[] pcm, int n) {
+            android.media.AudioTrack t = track; if (t != null) t.write(pcm, 0, n);
+            if (tapOn) tap(pcm, n);
+        }
         @Override public void spectrum(byte[] bins, long centerHz, int rate) {
             final String js = "window.__sdrSpec&&window.__sdrSpec('" + android.util.Base64.encodeToString(bins, android.util.Base64.NO_WRAP) + "'," + centerHz + "," + rate + ")";
             runOnUiThread(() -> web.evaluateJavascript(js, null));

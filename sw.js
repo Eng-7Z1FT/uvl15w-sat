@@ -1,8 +1,8 @@
 // Service worker: works offline as an installed app, and shows pass notifications on Android Chrome.
 // The page and sats.json are network-first (always fresh when online, cached copy when offline);
 // libraries and fonts from CDNs are cache-first.
-const CACHE = 'uvl15w-app-v9';
-const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './android-bridge.js'];
+const CACHE = 'uvl15w-app-v10';
+const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './android-bridge.js', './sstv.js'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).catch(() => {}).then(() => self.skipWaiting()));
 });
@@ -15,7 +15,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin === self.location.origin) {
-    e.respondWith(fetch(req).then(res => {
+    e.respondWith(fetch(req, { cache: 'no-cache' }).then(res => {
       if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
       return res;
     }).catch(() => caches.match(req, { ignoreSearch: true }).then(r => r || caches.match('./index.html'))));

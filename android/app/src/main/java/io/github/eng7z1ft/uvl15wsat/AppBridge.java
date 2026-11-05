@@ -38,6 +38,21 @@ public class AppBridge {
 
     AppBridge(Activity a, WebView w) { act = a; web = w; }
 
+    /** RTL-SDR ADS-B receiver: gain in tenths of dB (-1 = automatic), receiver position for CPR decoding. */
+    @JavascriptInterface
+    public void sdrStart(final int gainTenths, final double lat, final double lon) {
+        act.runOnUiThread(() -> ((MainActivity) act).startSdr(gainTenths, lat, lon));
+    }
+
+    @JavascriptInterface
+    public void sdrStop() { act.runOnUiThread(() -> ((MainActivity) act).stopSdr()); }
+
+    @JavascriptInterface
+    public void sdrRef(double lat, double lon) { ((MainActivity) act).sdr.refLat = lat; ((MainActivity) act).sdr.refLon = lon; }
+
+    @JavascriptInterface
+    public boolean sdrRunning() { return ((MainActivity) act).sdr.isRunning(); }
+
     /** GET a JSON feed from an allowed host; the result comes back through window.__appHttp(id, status, body). */
     @JavascriptInterface
     public void httpGet(final String id, final String url) {

@@ -683,7 +683,7 @@ details.fold[open]>summary::after{content:"－"}
   </div></details>
   <details class="fold" id="setLook"><summary>🎨 المظهر</summary><div class="foldbody">
     <label class="field" for="setTheme">ألوان البرنامج<select id="setTheme" class="sel"><option value="">تلقائي (مثل الجوال)</option><option value="light">فاتح</option><option value="dark">داكن</option></select></label>
-    <label class="field" for="setMap">شكل الخريطة<select id="setMap" class="sel"><option value="">تلقائي</option><option value="light">فاتح</option><option value="dark">داكن</option><option value="sat">صور فضائية</option></select></label>
+    <label class="field" for="setMap">شكل الخريطة<select id="setMap" class="sel"><option value="">تلقائي</option><option value="light">شوارع</option><option value="dark">داكن</option><option value="sat">صور فضائية</option></select></label>
     <label class="field" for="setStart">التبويب اللي يفتح أول<select id="setStart" class="sel"><option value="">آخر تبويب فتحته</option><option value="home">الأقمار</option><option value="fav">مفضلتي</option><option value="map">الخريطة</option><option value="track">التتبع</option><option value="aprs">APRS</option><option value="radio">الجهاز</option><option value="sdr">SDR</option></select></label>
   </div></details>
   <details class="fold" id="locFold"><summary>📍 موقعك ومصدر الأقمار</summary><div class="foldbody">
@@ -733,7 +733,7 @@ details.fold[open]>summary::after{content:"－"}
     <div><p>الموقع والبرنامج من تصميم وإعداد: <b>7Z1FT</b></p><p>وللتواصل: <span class="tag">@Eng_7Z1FT</span></p><p class="visits" id="visits" hidden></p></div>
   </footer>
     <p class="note" id="verNote">الإصدار 20 (5 نوفمبر 2026). برنامج مجاني لهواة اللاسلكي: تتبع أقمار الهواة، وبرمجة جهاز TYT UVL-15W والتحكم فيه بالبلوتوث، وAPRS عبر الأقمار.</p>
-    <p class="note"><b>مصادر البيانات والمكتبات:</b> أقمار SatNOGS DB، ومدارات CelesTrak، وحساب المدارات satellite.js، والخريطة Leaflet مع OpenStreetMap وCARTO وEsri، والطائرات adsb.lol (ODbL) وadsb.fi، وترددات الطيران من OpenAIP وSkyVector، وروابط Flightradar24، والخط IBM Plex Sans Arabic. شكراً لكل هالمشاريع المفتوحة.</p>
+    <p class="note"><b>مصادر البيانات والمكتبات:</b> أقمار SatNOGS DB، ومدارات CelesTrak، وحساب المدارات satellite.js، والخريطة Leaflet مع خرائط Esri وOpenStreetMap، والطائرات adsb.lol (ODbL) وadsb.fi، وترددات الطيران من OpenAIP وSkyVector، وروابط Flightradar24، والخط IBM Plex Sans Arabic. شكراً لكل هالمشاريع المفتوحة.</p>
   </div></details>
   <details class="fold" id="setLegal"><summary>⚠️ إخلاء المسؤولية</summary><div class="foldbody">
     <ul class="legal">
@@ -2693,8 +2693,7 @@ async function miniMapMount(b){
   try{await loadLeaflet()}catch(e){b.querySelector('[data-f="n"]').textContent='مكتبة الخريطة ما تحمّلت.';return}
   const el=b.querySelector('[data-f="m"]');if(!el||!el.isConnected)return;const me=obsLatLon()||{lat:24.7,lon:46.7};
   if(MINI)miniMapDrop();const map=L.map(el,{zoomControl:false,attributionControl:true,worldCopyJump:true,zoomAnimation:false,fadeAnimation:false,markerZoomAnimation:false}).setView([me.lat,me.lon],2);
-  const st=mapStyle();(st==='sat'?L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:'&copy; Esri'})
-    :L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/${st==='dark'?'dark_all':'voyager'}/{z}/{x}/{y}{r}.png`,{subdomains:'abcd',maxZoom:18,attribution:'&copy; OSM &copy; CARTO'})).addTo(map);
+  baseLayer(mapStyle()).addTo(map);
   MINI={map,night:L.polygon([],{stroke:false,fillColor:'#000',fillOpacity:.28,interactive:false}).addTo(map),sats:new Map(),track:L.layerGroup().addTo(map),me:L.circleMarker([me.lat,me.lon],{radius:6,color:'#fff',weight:2,fillColor:'#e0402f',fillOpacity:1}).addTo(map),trackAt:0,key:''};
   map.on('click',()=>showTab('map'));setTimeout(()=>{if(MINI&&MINI.map===map&&el.isConnected){map.invalidateSize();miniMapTick(b)}},60);
 }
@@ -2804,11 +2803,17 @@ $('btnSettings').onclick=()=>curTab==='settings'?showTab(prevTab):openSettings()
 $('setBack').onclick=()=>showTab(prevTab||'home');
 function applyTheme(v){if(v)document.documentElement.dataset.theme=v;else delete document.documentElement.dataset.theme;
   const m=document.querySelector('meta[name="theme-color"]');if(m)m.content=getComputedStyle(document.body).backgroundColor||'#0f1512';mapTiles()}
+const ESRI='https://server.arcgisonline.com/ArcGIS/rest/services/',ESRI_ATTR='Tiles &copy; Esri &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap contributors';
+function baseLayer(st){
+  const t=(svc,o={})=>L.tileLayer(ESRI+svc+'/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:ESRI_ATTR,...o});
+  if(st==='sat')return L.layerGroup([t('World_Imagery'),t('Reference/World_Boundaries_and_Places',{attribution:''})]);
+  if(st==='dark')return L.layerGroup([t('Canvas/World_Dark_Gray_Base',{maxZoom:16}),t('Canvas/World_Dark_Gray_Reference',{maxZoom:16,attribution:''})]);
+  return t('World_Street_Map');
+}
 function mapStyle(){const v=lsGet('uvl15w_mapstyle')||'';return v||(darkUi()?'dark':'light')}
 function mapTiles(){if(!MAP||!window.L)return;const st=mapStyle();if(ML.tilesStyle===st)return;if(ML.tiles)MAP.removeLayer(ML.tiles);
-  ML.tiles=st==='sat'?L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:'Tiles &copy; Esri'})
-    :L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/${st==='dark'?'dark_all':'voyager'}/{z}/{x}/{y}{r}.png`,{subdomains:'abcd',maxZoom:18,attribution:'&copy; OpenStreetMap &copy; CARTO'});
-  ML.tiles.addTo(MAP);ML.tiles.bringToBack();ML.tilesStyle=st}
+  ML.tiles=baseLayer(st);
+  ML.tiles.addTo(MAP);ML.tilesStyle=st}
 $('setTheme').value=lsGet('uvl15w_theme')||'';applyTheme($('setTheme').value);
 $('setTheme').onchange=e=>{lsSet('uvl15w_theme',e.target.value);applyTheme(e.target.value);try{drawSky()}catch(x){}};
 $('setMap').value=lsGet('uvl15w_mapstyle')||'';$('setMap').onchange=e=>{lsSet('uvl15w_mapstyle',e.target.value);mapTiles()};

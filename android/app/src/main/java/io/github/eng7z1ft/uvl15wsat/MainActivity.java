@@ -37,10 +37,10 @@ public class MainActivity extends Activity {
         s.setDatabaseEnabled(true);
         s.setGeolocationEnabled(true);
         s.setMediaPlaybackRequiresUserGesture(false);
-        s.setUserAgentString(s.getUserAgentString() + " UVL15WApp/2");
+        s.setUserAgentString(s.getUserAgentString() + " UVL15WApp/3");
         bt = new BtBridge(this, web);
         web.addJavascriptInterface(bt, "AndroidBT");
-        web.addJavascriptInterface(new AppBridge(this), "AndroidApp");
+        web.addJavascriptInterface(new AppBridge(this, web), "AndroidApp");
         web.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest req) {

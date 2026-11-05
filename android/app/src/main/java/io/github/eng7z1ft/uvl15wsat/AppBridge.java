@@ -15,18 +15,57 @@ import android.provider.MediaStore;
 import android.util.Base64;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebView;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import org.json.JSONObject;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 
-/** window.AndroidApp: save downloads, show notifications, keep the screen on while tracking. */
+/** window.AndroidApp: save downloads, show notifications, keep the screen on while tracking,
+ *  and fetch open ADS-B feeds (they send no CORS header, so the page cannot read them itself). */
 public class AppBridge {
     private final Activity act;
+    private final WebView web;
     private int notifId = 100;
+    // Only these hosts can be fetched through the bridge.
+    private static final String[] HTTP_HOSTS = {"api.adsb.lol", "opendata.adsb.fi"};
 
-    AppBridge(Activity a) { act = a; }
+    AppBridge(Activity a, WebView w) { act = a; web = w; }
+
+    /** GET a JSON feed from an allowed host; the result comes back through window.__appHttp(id, status, body). */
+    @JavascriptInterface
+    public void httpGet(final String id, final String url) {
+        new Thread(() -> {
+            int code = 0; String body;
+            try {
+                URL u = new URL(url);
+                boolean ok = "https".equals(u.getProtocol());
+                boolean hostOk = false;
+                for (String h : HTTP_HOSTS) if (h.equals(u.getHost())) hostOk = true;
+                if (!ok || !hostOk) throw new Exception("host not allowed");
+                HttpURLConnection c = (HttpURLConnection) u.openConnection();
+                c.setConnectTimeout(8000); c.setReadTimeout(10000);
+                c.setRequestProperty("User-Agent", "UVL15W-sat/3 (7Z1FT amateur radio app)");
+                c.setRequestProperty("Accept", "application/json");
+                code = c.getResponseCode();
+                InputStream in = code >= 400 ? c.getErrorStream() : c.getInputStream();
+                ByteArrayOutputStream bo = new ByteArrayOutputStream();
+                if (in != null) { byte[] buf = new byte[16384]; int n; while ((n = in.read(buf)) > 0 && bo.size() < 4_000_000) bo.write(buf, 0, n); in.close(); }
+                body = bo.toString("UTF-8");
+                c.disconnect();
+            } catch (Exception e) {
+                body = String.valueOf(e.getMessage());
+            }
+            final String js = "window.__appHttp&&window.__appHttp(" + JSONObject.quote(id) + "," + code + "," + JSONObject.quote(body) + ")";
+            act.runOnUiThread(() -> web.evaluateJavascript(js, null));
+        }).start();
+    }
 
     private void toast(final String t) { act.runOnUiThread(() -> Toast.makeText(act, t, Toast.LENGTH_LONG).show()); }
 

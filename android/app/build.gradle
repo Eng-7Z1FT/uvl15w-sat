@@ -1,5 +1,5 @@
-// Trusted Web Activity: the installed app opens the GitHub Pages site inside Chrome,
-// so Web Bluetooth (BLE) and Web Serial (classic Bluetooth SPP) work exactly as on the website.
+// Native app: a WebView shows the GitHub Pages site, and Java bridges give it Bluetooth
+// (BLE for memory, classic SPP for CI-V tracking and APRS), file saving and notifications.
 plugins { id 'com.android.application' }
 android {
     namespace 'io.github.eng7z1ft.uvl15wsat'
@@ -20,6 +20,6 @@ android {
         }
     }
     buildTypes { release { minifyEnabled false; signingConfig signingConfigs.release } }
+    lint { abortOnError false; checkReleaseBuilds false }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
-dependencies { implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0' }

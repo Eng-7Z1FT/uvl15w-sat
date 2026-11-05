@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#0f1512">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
+<script src="android-bridge.js"></script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -1168,7 +1169,7 @@ async function sppClose(which){const L=which===2?r2:spp;if(!L)return;if(which===
   log(`فصلت الجهاز ${which}`);sppUi()}
 /* Inside the installed Android app (Trusted Web Activity) Chrome may not show the classic-Bluetooth picker.
    Offer to open the same page in a normal Chrome tab, where SPP is known to work. */
-const inApp=()=>(document.referrer||'').startsWith('android-app://')||matchMedia('(display-mode: standalone)').matches;
+const inApp=()=>!window.__inNativeApp&&((document.referrer||'').startsWith('android-app://')||matchMedia('(display-mode: standalone)').matches);
 const chromeUrl=()=>'intent://'+location.host+location.pathname+'#Intent;scheme=https;package=com.android.chrome;end';
 function sppAppHint(){if(!inApp())return;$('sppApp').hidden=false}
 $('btnSpp').onclick=async()=>{

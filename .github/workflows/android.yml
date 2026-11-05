@@ -35,7 +35,14 @@ jobs:
           KS_PATH: ${{ runner.temp }}/release.jks
           # the password alone is useless without the keystore, which lives only in the ANDROID_KEYSTORE_B64 secret
           KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS || 'No5IsnUDGqDC3EVWjfJHPLQe' }}
-        run: gradle -p android assembleRelease --no-daemon
+        run: |
+          set +e
+          gradle -p android assembleRelease --no-daemon 2>&1 | tee build.log
+          st=${PIPESTATUS[0]}
+          if [ "$st" -ne 0 ]; then
+            grep -E "error:|e: |What went wrong|Could not|FAILED" -A1 build.log | head -40 | while IFS= read -r l; do echo "::error::$l"; done
+            exit "$st"
+          fi
       - name: Rename
         run: cp android/app/build/outputs/apk/release/app-release.apk uvl15w-sat.apk
       - uses: actions/upload-artifact@v4
@@ -47,7 +54,7 @@ jobs:
           tag_name: app-latest
           name: UVL-15W سات (آخر نسخة)
           body: |
-            تطبيق أندرويد لصفحة UVL-15W سات من 7Z1FT. نزّل uvl15w-sat.apk وثبّته.
-            يفتح الصفحة داخل Chrome، فالبلوتوث العادي وSPP يشتغلون مثل الموقع بالضبط.
+            تطبيق أندرويد لـ UVL-15W سات من 7Z1FT. نزّل uvl15w-sat.apk وثبّته.
+            التطبيق يتصل بالجهاز بنفسه: البلوتوث العادي للذاكرة، وبلوتوث الكلاسيك (SPP) للتتبع وAPRS.
           files: uvl15w-sat.apk
           make_latest: true

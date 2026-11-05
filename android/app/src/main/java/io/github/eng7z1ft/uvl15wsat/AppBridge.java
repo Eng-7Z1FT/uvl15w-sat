@@ -34,7 +34,7 @@ public class AppBridge {
     private final WebView web;
     private int notifId = 100;
     // Only these hosts can be fetched through the bridge.
-    private static final String[] HTTP_HOSTS = {"api.adsb.lol", "opendata.adsb.fi"};
+    private static final String[] HTTP_HOSTS = {"api.adsb.lol", "opendata.adsb.fi", "api.airplanes.live", "adsbexchange-com1.p.rapidapi.com"};
 
     AppBridge(Activity a, WebView w) { act = a; web = w; }
 
@@ -80,7 +80,13 @@ public class AppBridge {
 
     /** GET a JSON feed from an allowed host; the result comes back through window.__appHttp(id, status, body). */
     @JavascriptInterface
-    public void httpGet(final String id, final String url) {
+    public void httpGet(final String id, final String url) { get(id, url, null); }
+
+    /** Same, with the user's own RapidAPI key (ADS-B Exchange). The key is sent only to the RapidAPI host. */
+    @JavascriptInterface
+    public void httpGetKey(final String id, final String url, final String key) { get(id, url, key); }
+
+    private void get(final String id, final String url, final String key) {
         new Thread(() -> {
             int code = 0; String body;
             try {
@@ -93,6 +99,10 @@ public class AppBridge {
                 c.setConnectTimeout(8000); c.setReadTimeout(10000);
                 c.setRequestProperty("User-Agent", "UVL15W-sat/3 (7Z1FT amateur radio app)");
                 c.setRequestProperty("Accept", "application/json");
+                if (key != null && !key.isEmpty() && u.getHost().endsWith(".p.rapidapi.com")) {
+                    c.setRequestProperty("X-RapidAPI-Key", key.trim());
+                    c.setRequestProperty("X-RapidAPI-Host", u.getHost());
+                }
                 code = c.getResponseCode();
                 InputStream in = code >= 400 ? c.getErrorStream() : c.getInputStream();
                 ByteArrayOutputStream bo = new ByteArrayOutputStream();

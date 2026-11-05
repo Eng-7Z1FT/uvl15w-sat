@@ -1,0 +1,28 @@
+# Temporary: how many aircraft the open feeds report around Dammam right now, and where GFA flights are.
+name: probe-aircraft
+on:
+  push:
+    paths: ['.github/workflows/probe-aircraft.yml']
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          UA="UVL15W-sat/3 (7Z1FT amateur radio app)"
+          for u in "https://api.adsb.lol/v2/point/26.43/50.06/100" "https://opendata.adsb.fi/api/v3/lat/26.43/lon/50.06/dist/100" "https://api.airplanes.live/v2/point/26.43/50.06/100"; do
+            curl -sS -m 25 -A "$UA" -o b.json -w "%{http_code}" "$u" > code.txt || true
+            python3 - "$u" "$(cat code.txt)" <<'PY'
+          import json,sys,time
+          u,code=sys.argv[1],sys.argv[2]
+          try:
+              d=json.load(open('b.json'))
+          except Exception as e:
+              print(f"::warning::{u} HTTP {code} not json");sys.exit()
+          a=d.get('ac') or d.get('aircraft') or []
+          pos=[x for x in a if x.get('lat') is not None]
+          mlat=sum(1 for x in a if x.get('mlat'));tis=sum(1 for x in a if x.get('tisb'))
+          seen=sorted(round(x.get('seen_pos',x.get('seen',0)) or 0) for x in pos)
+          names=' '.join(sorted(((x.get('flight') or x['hex']).strip()) for x in pos))
+          print(f"::warning::{u.split('/')[2]} HTTP {code} total={len(a)} withpos={len(pos)} mlat={mlat} seen_pos_median={seen[len(seen)//2] if seen else '-'}s :: {names[:600]}")
+          PY
+          done

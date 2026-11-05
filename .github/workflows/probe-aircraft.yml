@@ -9,11 +9,12 @@ jobs:
     steps:
       - run: |
           O="https://eng-7z1ft.github.io"
-          for u in "https://api.adsb.lol/v2/point/26.43/50.06/100" \
-                   "https://api.airplanes.live/v2/point/26.43/50.06/100" \
-                   "https://opendata.adsb.fi/api/v2/lat/26.43/lon/50.06/dist/100" \
-                   "https://opensky-network.org/api/states/all?lamin=25&lomin=49&lamax=28&lomax=51"; do
-            h=$(curl -sS -m 25 -D - -o body.json -H "Origin: $O" "$u" 2>&1 | tr -d '\r')
+          for u in "https://api.adsb.one/v2/point/26.43/50.06/100" \
+                   "https://opendata.adsb.fi/api/v3/lat/26.43/lon/50.06/dist/100" \
+                   "https://api.adsb.lol/v2/lat/26.43/lon/50.06/dist/100" \
+                   "https://adsbexchange.com/api/aircraft/v2/lat/26.43/lon/50.06/dist/100" \
+                   "https://api.airplanes.live/v2/point/26.43/50.06/100?x=1"; do
+            h=$(curl -sS -m 25 -D - -o body.json -H "Origin: $O" -H "User-Agent: Mozilla/5.0 (Linux; Android 14) Chrome/130 Mobile" "$u" 2>&1 | tr -d '\r')
             code=$(echo "$h" | grep -m1 -E '^HTTP' | awk '{print $2}')
             acao=$(echo "$h" | grep -i '^access-control-allow-origin' | head -1)
             n=$(python3 -c "import json;d=json.load(open('body.json'));a=d.get('ac') or d.get('aircraft') or d.get('states') or [];print(len(a))" 2>/dev/null || echo "?")

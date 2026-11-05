@@ -53,7 +53,9 @@ public final class SdrAdsb {
         int n = len / 2, t = tail.length;
         if (mag.length < t + n) mag = new short[t + n];
         System.arraycopy(tail, 0, mag, 0, t);
-        for (int k = 0; k < n; k++) mag[t + k] = MAG_LUT[((iq[2 * k] & 0xFF) << 8) | (iq[2 * k + 1] & 0xFF)];
+        long sum = 0; int mx = magMax;
+        for (int k = 0; k < n; k++) { short v = MAG_LUT[((iq[2 * k] & 0xFF) << 8) | (iq[2 * k + 1] & 0xFF)]; mag[t + k] = v; sum += v; if (v > mx) mx = v; }
+        magSum += sum; magN += n; magMax = mx;
         int total = t + n, end = total - FULL, j = 0;
         while (j < end) {
             if (preamble(j)) {
@@ -83,15 +85,25 @@ public final class SdrAdsb {
         for (int i = 0; i < LONG_BITS; i++) { int a = m[s + 2 * i], b = m[s + 2 * i + 1]; bits[i] = a > b ? 1 : 0; }
         int df = get(0, 5);
         if (df != 17 && df != 18) return false;
-        return crcOk();
+        int syn = syndrome(bits, work);
+        if (syn == 0) return true;
+        // one wrong bit (common with real signals): its syndrome tells which bit, like dump1090 does
+        for (int i = 5; i < LONG_BITS; i++) if (SYN[i] == syn) { bits[i] ^= 1; fixed++; return true; }
+        return false;
     }
 
-    private boolean crcOk() {
-        System.arraycopy(bits, 0, work, 0, LONG_BITS);
-        for (int i = 0; i < LONG_BITS - 24; i++) if (work[i] == 1) for (int k = 0; k < 25; k++) work[i + k] ^= GEN[k];
-        for (int i = LONG_BITS - 24; i < LONG_BITS; i++) if (work[i] != 0) return false;
-        return true;
+    /** CRC-24 remainder of the 112-bit frame (0 = valid). */
+    private static int syndrome(int[] b, int[] w) {
+        System.arraycopy(b, 0, w, 0, LONG_BITS);
+        for (int i = 0; i < LONG_BITS - 24; i++) if (w[i] == 1) for (int k = 0; k < 25; k++) w[i + k] ^= GEN[k];
+        int r = 0; for (int i = LONG_BITS - 24; i < LONG_BITS; i++) r = (r << 1) | w[i];
+        return r;
     }
+    private static final int[] SYN = new int[LONG_BITS];
+    static { int[] b = new int[LONG_BITS], w = new int[LONG_BITS]; for (int i = 0; i < LONG_BITS; i++) { b[i] = 1; SYN[i] = syndrome(b, w); b[i] = 0; } }
+    public long fixed, magSum, magN; public int magMax;
+
+    private boolean crcOk() { return syndrome(bits, work) == 0; }
 
     private int get(int start, int len) { int v = 0; for (int i = 0; i < len; i++) v = (v << 1) | bits[start + i]; return v; }
 
@@ -268,7 +280,7 @@ public final class SdrAdsb {
             int got = 0; while (got < 4) { int r = in.read(buf, got, 4 - got); if (r < 0) throw new Exception("closed"); got += r; }
             if (buf[0] == 'R' && buf[1] == 'T' && buf[2] == 'L' && buf[3] == '0') { int skip = 8; while (skip > 0) { long k = in.skip(skip); if (k <= 0) { if (in.read() < 0) throw new Exception("closed"); k = 1; } skip -= k; } }
             sink.onStatus("on", "");
-            long lastOut = 0, bytes = 0, lastMsgs = 0, lastStatT = System.currentTimeMillis();
+            long lastOut = 0, bytes = 0, lastMsgs = 0, lastPre = 0, lastStatT = System.currentTimeMillis();
             while (running) {
                 int r = in.read(buf, 0, buf.length & ~1);
                 if (r < 0) break;
@@ -283,7 +295,9 @@ public final class SdrAdsb {
                     String j = json(now);
                     double secs = Math.max(0.5, (now - lastStatT) / 1000.0);
                     String stat = cur != null ? String.format(Locale.US, "RX · %.2f MS/s", bytes / 2e6 / secs)
-                        : String.format(Locale.US, "ADS-B · %.1f MS/s · %.0f msg/s · %d ac", bytes / 2e6 / secs, (msgsOk - lastMsgs) / secs, acs.size());
+                        : String.format(Locale.US, "ADS-B · %.1f MS/s · %.0f msg/s · %d ac · sig %d/%d · pre %.0f/s · fix %d", bytes / 2e6 / secs, (msgsOk - lastMsgs) / secs, acs.size(),
+                            magN > 0 ? magSum / magN : 0, magMax, (preambles - lastPre) / secs, fixed);
+                    lastPre = preambles; magSum = 0; magN = 0; magMax = 0;
                     bytes = 0; lastMsgs = msgsOk; lastStatT = now;
                     if (cur == null) sink.onAircraft(j);
                     sink.onStatus("on", stat);

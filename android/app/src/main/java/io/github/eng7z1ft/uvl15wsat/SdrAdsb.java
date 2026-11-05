@@ -206,6 +206,19 @@ public final class SdrAdsb {
     }
 
     // ---------------- rtl_tcp client ----------------
+    /** When set, the stream goes to the voice receiver instead of the ADS-B decoder (same dongle, same connection). */
+    private volatile SdrRx rx;
+    private final java.util.concurrent.ConcurrentLinkedQueue<long[]> cmdQ = new java.util.concurrent.ConcurrentLinkedQueue<>();
+    public void post(int c, long v) { cmdQ.add(new long[]{c, v}); }
+    public void setRx(SdrRx r) {
+        rx = r;
+        if (r != null) { post(0x02, SdrRx.FS); post(0x01, r.centerHz); }
+        else { post(0x02, 2000000L); post(0x01, 1090000000L); tail = new short[0]; }
+    }
+    public SdrRx getRx() { return rx; }
+    public void setGain(int gainTenths) {
+        if (gainTenths < 0) { post(0x03, 0); post(0x08, 1); } else { post(0x03, 1); post(0x08, 0); post(0x04, gainTenths); }
+    }
     private volatile boolean running;
     private Thread thread;
     private Socket sock;
@@ -243,8 +256,10 @@ public final class SdrAdsb {
             sock = s;
             s.setReceiveBufferSize(1 << 20);
             OutputStream o = s.getOutputStream();
-            cmd(o, 0x01, 1090000000L);           // frequency
-            cmd(o, 0x02, 2000000L);              // sample rate
+            SdrRx r0 = rx;
+            cmd(o, 0x02, r0 != null ? SdrRx.FS : 2000000L);              // sample rate
+            cmd(o, 0x01, r0 != null ? r0.centerHz : 1090000000L);         // frequency
+            cmdQ.clear();
             if (gainTenths < 0) { cmd(o, 0x03, 0); cmd(o, 0x08, 1); }          // auto gain
             else { cmd(o, 0x03, 1); cmd(o, 0x08, 0); cmd(o, 0x04, gainTenths); } // manual gain
             InputStream in = s.getInputStream();
@@ -259,15 +274,18 @@ public final class SdrAdsb {
                 if (r < 0) break;
                 if ((r & 1) == 1) { int r2 = in.read(buf, r, 1); if (r2 < 0) break; r++; }
                 long now = System.currentTimeMillis();
-                feed(buf, r, now);
+                for (long[] c; (c = cmdQ.poll()) != null; ) cmd(o, (int) c[0], c[1]);
+                SdrRx cur = rx;
+                if (cur != null) cur.process(buf, r, now); else feed(buf, r, now);
                 bytes += r;
                 if (now - lastOut >= 1000) {
                     lastOut = now;
                     String j = json(now);
                     double secs = Math.max(0.5, (now - lastStatT) / 1000.0);
-                    String stat = String.format(Locale.US, "%.1f MS/s · %.0f msg/s · %d ac", bytes / 2e6 / secs, (msgsOk - lastMsgs) / secs, acs.size());
+                    String stat = cur != null ? String.format(Locale.US, "RX · %.2f MS/s", bytes / 2e6 / secs)
+                        : String.format(Locale.US, "ADS-B · %.1f MS/s · %.0f msg/s · %d ac", bytes / 2e6 / secs, (msgsOk - lastMsgs) / secs, acs.size());
                     bytes = 0; lastMsgs = msgsOk; lastStatT = now;
-                    sink.onAircraft(j);
+                    if (cur == null) sink.onAircraft(j);
                     sink.onStatus("on", stat);
                 }
             }

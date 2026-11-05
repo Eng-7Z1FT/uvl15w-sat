@@ -44,6 +44,27 @@ public class AppBridge {
         act.runOnUiThread(() -> ((MainActivity) act).startSdr(gainTenths, lat, lon));
     }
 
+    /** Voice receiver: frequency in Hz, demod 0 NFM / 1 AM / 2 WFM. Starts the dongle if needed. */
+    @JavascriptInterface
+    public void sdrListen(final double hz, final int demod, final int gainTenths) {
+        act.runOnUiThread(() -> ((MainActivity) act).sdrListen(Math.round(hz), demod, gainTenths));
+    }
+
+    @JavascriptInterface
+    public void sdrTune(double hz) { SdrRx r = ((MainActivity) act).rx; if (r != null) r.tune(Math.round(hz)); }
+
+    @JavascriptInterface
+    public void sdrDemod(int m) { SdrRx r = ((MainActivity) act).rx; if (r != null) r.mode = m; }
+
+    @JavascriptInterface
+    public void sdrSquelch(float db) { MainActivity m = (MainActivity) act; m.sqDb = db; if (m.rx != null) m.rx.squelchDb = db; }
+
+    @JavascriptInterface
+    public void sdrVolume(float v) { MainActivity m = (MainActivity) act; m.vol = v; if (m.rx != null) m.rx.volume = v; }
+
+    @JavascriptInterface
+    public void sdrGain(int g) { MainActivity m = (MainActivity) act; m.sdrGain = g; if (m.sdr.isRunning()) m.sdr.setGain(g); }
+
     @JavascriptInterface
     public void sdrStop() { act.runOnUiThread(() -> ((MainActivity) act).stopSdr()); }
 

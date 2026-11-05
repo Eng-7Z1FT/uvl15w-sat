@@ -118,15 +118,56 @@ public class MainActivity extends Activity {
 
     /** Ask the RTL-SDR driver app (iqsrc://) to open the dongle and serve rtl_tcp on localhost. */
     void startSdr(int gainTenths, double lat, double lon) {
-        sdrGain = gainTenths;
         if (!Double.isNaN(lat)) { sdr.refLat = lat; sdr.refLon = lon; }
-        if (sdr.isRunning()) { sdrStatus("on", ""); return; }
+        if (sdr.getRx() != null) { sdr.setRx(null); rx = null; releaseTrack(); }
+        if (sdr.isRunning()) { if (gainTenths != sdrGain) sdr.setGain(gainTenths); sdrGain = gainTenths; sdrStatus("on", ""); return; }
+        sdrGain = gainTenths;
+        launchDriver();
+    }
+
+    /** Listen to a voice channel: demod 0 = NFM, 1 = AM, 2 = WFM. */
+    void sdrListen(long hz, int demod, int gainTenths) {
+        ensureTrack();
+        if (rx == null) { rx = new SdrRx(rxOut, hz, demod); rx.squelchDb = sqDb; rx.volume = vol; sdr.setRx(rx); }
+        else { rx.mode = demod; rx.tune(hz); }
+        if (sdr.isRunning()) { if (gainTenths != sdrGain) sdr.setGain(gainTenths); sdrGain = gainTenths; sdrStatus("on", ""); return; }
+        sdrGain = gainTenths;
+        launchDriver();
+    }
+
+    SdrRx rx; android.media.AudioTrack track; float sqDb = -200f, vol = 0.8f;
+    void ensureTrack() {
+        if (track != null) return;
+        int min = android.media.AudioTrack.getMinBufferSize(SdrRx.AUD, android.media.AudioFormat.CHANNEL_OUT_MONO, android.media.AudioFormat.ENCODING_PCM_16BIT);
+        track = new android.media.AudioTrack(
+            new android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_MEDIA).setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH).build(),
+            new android.media.AudioFormat.Builder().setSampleRate(SdrRx.AUD).setEncoding(android.media.AudioFormat.ENCODING_PCM_16BIT).setChannelMask(android.media.AudioFormat.CHANNEL_OUT_MONO).build(),
+            Math.max(min * 4, 32768), android.media.AudioTrack.MODE_STREAM, android.media.AudioManager.AUDIO_SESSION_ID_GENERATE);
+        track.play();
+    }
+    void releaseTrack() { if (track != null) { try { track.stop(); track.release(); } catch (Exception ignored) { } track = null; } }
+
+    long specAt, levelAt;
+    final SdrRx.Out rxOut = new SdrRx.Out() {
+        @Override public void audio(short[] pcm, int n) { android.media.AudioTrack t = track; if (t != null) t.write(pcm, 0, n); }
+        @Override public void spectrum(byte[] bins, long centerHz, int rate) {
+            final String js = "window.__sdrSpec&&window.__sdrSpec('" + android.util.Base64.encodeToString(bins, android.util.Base64.NO_WRAP) + "'," + centerHz + "," + rate + ")";
+            runOnUiThread(() -> web.evaluateJavascript(js, null));
+        }
+        @Override public void level(float db, boolean open) {
+            final String js = "window.__sdrLevel&&window.__sdrLevel(" + String.format(java.util.Locale.US, "%.1f", db) + "," + open + ")";
+            runOnUiThread(() -> web.evaluateJavascript(js, null));
+        }
+        @Override public void retune(long centerHz) { sdr.post(0x01, centerHz); }
+    };
+
+    void launchDriver() {
         Intent i = new Intent(Intent.ACTION_VIEW).setData(Uri.parse("iqsrc://-a 127.0.0.1 -p " + SDR_PORT + " -s 2000000"));
         try { startActivityForResult(i, REQ_SDR); sdrStatus("starting", ""); }
         catch (android.content.ActivityNotFoundException e) { sdrStatus("nodriver", ""); }
     }
 
-    void stopSdr() { sdr.stop(); sdrStatus("off", ""); }
+    void stopSdr() { sdr.stop(); sdr.setRx(null); rx = null; releaseTrack(); sdrStatus("off", ""); }
 
     void sdrStatus(String state, String detail) {
         final String js = "window.__sdrStatus&&window.__sdrStatus(" + org.json.JSONObject.quote(state) + "," + org.json.JSONObject.quote(detail == null ? "" : detail) + ")";
@@ -147,6 +188,7 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         bt.shutdown();
         sdr.stop();
+        releaseTrack();
         web.destroy();
         super.onDestroy();
     }

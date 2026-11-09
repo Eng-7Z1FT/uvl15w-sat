@@ -19,8 +19,9 @@ import android.webkit.WebViewClient;
  *  file saving and notifications through two JavaScript bridges (see android-bridge.js on the site). */
 public class MainActivity extends Activity {
     static final String SITE = "https://eng-7z1ft.github.io/uvl15w-sat/";
-    static final int REQ_MIC = 17;
-    android.webkit.PermissionRequest micReq;
+    static final int REQ_MIC = 17, REQ_MEDIA = 18;
+    android.webkit.PermissionRequest micReq, mediaReq;
+    String[] mediaGrant;
     static final int REQ_FILE = 11, REQ_GEO = 13, REQ_SDR = 1234, SDR_PORT = 14423;
     WebView web;
     BtBridge bt;
@@ -70,11 +71,20 @@ public class MainActivity extends Activity {
             @Override
             public void onPermissionRequest(final android.webkit.PermissionRequest req) {
                 runOnUiThread(() -> {
-                    boolean audio = false;
-                    for (String r : req.getResources()) if (android.webkit.PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(r)) audio = true;
-                    if (!audio || !req.getOrigin().toString().startsWith("https://eng-7z1ft.github.io")) { req.deny(); return; }
-                    if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) req.grant(new String[]{android.webkit.PermissionRequest.RESOURCE_AUDIO_CAPTURE});
-                    else { micReq = req; requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQ_MIC); }
+                    boolean audio = false, video = false;
+                    for (String r : req.getResources()) {
+                        if (android.webkit.PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(r)) audio = true;
+                        if (android.webkit.PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(r)) video = true;
+                    }
+                    if ((!audio && !video) || !req.getOrigin().toString().startsWith("https://eng-7z1ft.github.io")) { req.deny(); return; }
+                    java.util.ArrayList<String> grant = new java.util.ArrayList<>();
+                    java.util.ArrayList<String> need = new java.util.ArrayList<>();
+                    if (audio) { grant.add(android.webkit.PermissionRequest.RESOURCE_AUDIO_CAPTURE);
+                        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) need.add(Manifest.permission.RECORD_AUDIO); }
+                    if (video) { grant.add(android.webkit.PermissionRequest.RESOURCE_VIDEO_CAPTURE);
+                        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) need.add(Manifest.permission.CAMERA); }
+                    if (need.isEmpty()) { req.grant(grant.toArray(new String[0])); }
+                    else { mediaReq = req; mediaGrant = grant.toArray(new String[0]); requestPermissions(need.toArray(new String[0]), REQ_MEDIA); }
                 });
             }
             @Override
@@ -124,6 +134,13 @@ public class MainActivity extends Activity {
         if (req == REQ_MIC && micReq != null) {
             if (res.length > 0 && res[0] == PackageManager.PERMISSION_GRANTED) micReq.grant(new String[]{android.webkit.PermissionRequest.RESOURCE_AUDIO_CAPTURE}); else micReq.deny();
             micReq = null;
+            return;
+        }
+        if (req == REQ_MEDIA && mediaReq != null) {
+            boolean all = res.length > 0;
+            for (int x : res) if (x != PackageManager.PERMISSION_GRANTED) all = false;
+            if (all && mediaGrant != null) mediaReq.grant(mediaGrant); else mediaReq.deny();
+            mediaReq = null; mediaGrant = null;
             return;
         }
         if (req == REQ_GEO && geoCb != null) {

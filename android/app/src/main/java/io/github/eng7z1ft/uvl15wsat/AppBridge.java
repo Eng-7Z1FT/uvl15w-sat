@@ -34,7 +34,7 @@ public class AppBridge {
     private final WebView web;
     private int notifId = 100;
     // Only these hosts can be fetched through the bridge.
-    private static final String[] HTTP_HOSTS = {"api.adsb.lol", "opendata.adsb.fi", "api.airplanes.live", "adsbexchange-com1.p.rapidapi.com", "api.adsbdb.com", "api.planespotters.net"};
+    private static final String[] HTTP_HOSTS = {"api.adsb.lol", "opendata.adsb.fi", "api.airplanes.live", "adsbexchange-com1.p.rapidapi.com", "api.adsbdb.com", "api.planespotters.net", "fr24api.flightradar24.com"};
 
     AppBridge(Activity a, WebView w) { act = a; web = w; }
 
@@ -102,6 +102,10 @@ public class AppBridge {
                 if (key != null && !key.isEmpty() && u.getHost().endsWith(".p.rapidapi.com")) {
                     c.setRequestProperty("X-RapidAPI-Key", key.trim());
                     c.setRequestProperty("X-RapidAPI-Host", u.getHost());
+                }
+                if (key != null && !key.isEmpty() && u.getHost().equals("fr24api.flightradar24.com")) {
+                    c.setRequestProperty("Authorization", "Bearer " + key.trim());
+                    c.setRequestProperty("Accept-Version", "v1");
                 }
                 code = c.getResponseCode();
                 InputStream in = code >= 400 ? c.getErrorStream() : c.getInputStream();

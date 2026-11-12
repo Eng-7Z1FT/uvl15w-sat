@@ -34,7 +34,7 @@ public class AppBridge {
     private final WebView web;
     private int notifId = 100;
     // Only these hosts can be fetched through the bridge.
-    private static final String[] HTTP_HOSTS = {"api.adsb.lol", "opendata.adsb.fi", "api.airplanes.live", "adsbexchange-com1.p.rapidapi.com", "api.adsbdb.com", "api.planespotters.net", "fr24api.flightradar24.com"};
+    private static final String[] HTTP_HOSTS = {"api.adsb.lol", "opendata.adsb.fi", "api.airplanes.live", "adsbexchange-com1.p.rapidapi.com", "api.adsbdb.com", "api.planespotters.net", "fr24api.flightradar24.com", "api.v2.sondehub.org"};
 
     AppBridge(Activity a, WebView w) { act = a; web = w; }
 

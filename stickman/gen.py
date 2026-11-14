@@ -5,7 +5,7 @@ W, H = 600, 800
 
 def pl(pts): return " ".join(f"{x},{y}" for x, y in pts)
 
-FACE = os.environ.get("FACE", "A")
+FACE = os.environ.get("FACE", "B")
 FACES = {  # face fill, face outline, feature colour
     "A": ("#0a1a0e", None, "#f3efe4"),   # dark hood opening, cream features
     "B": (None, None, "#f3efe4"),        # no opening: features straight on green

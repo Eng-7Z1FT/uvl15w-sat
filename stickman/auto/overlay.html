@@ -1,0 +1,28 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>overlay</title>
+<style>html,body{margin:0;background:transparent;overflow:hidden}</style></head>
+<body><svg id="svg" xmlns="http://www.w3.org/2000/svg"><g id="char"></g></svg>
+<script src="../engine.js"></script>
+<script>
+/* Renders one transparent frame of the character from a plan (see process.py). */
+let PLAN=null,S=1,BOXW=0,BOXH=0;
+const NATIVE_W=640,NATIVE_H=820,ANCHOR_X=320,ANCHOR_Y=760,BLEND=.45,ENTER=.6,EXIT=.5;
+window.setup=plan=>{PLAN=plan;S=plan.scale;SCALE=S;BOXW=Math.round(NATIVE_W*S);BOXH=Math.round(NATIVE_H*S);
+  const svg=document.getElementById('svg');svg.setAttribute('width',BOXW);svg.setAttribute('height',BOXH);return [BOXW,BOXH]};
+function segAt(t){const s=PLAN.segments;let i=0;while(i<s.length-1&&t>=s[i+1].t0)i++;return i}
+function blinkAt(t){for(const b of PLAN.blinks){if(t>=b&&t<b+.14)return Math.sin((t-b)/.14*Math.PI)}return 0}
+window.renderAt=i=>{
+  const t=i/PLAN.fps,m=PLAN.mouth[i]||0,f=PLAN.facing,dur=PLAN.duration;
+  const si=segAt(t),seg=PLAN.segments[si],prev=si>0?PLAN.segments[si-1]:seg;
+  const cur=animate(POSES[seg.pose],seg.pose,t,m),k=si>0?clamp((t-seg.t0)/BLEND):1;
+  let P=cur.P,dy=cur.dy,props_=props(seg.pose===prev.pose||k>=1?P.props:null,t,f<0),pOld='';
+  if(k<1&&prev.pose!==seg.pose){const A=animate(POSES[prev.pose],prev.pose,t,m);const e=smooth(0,1,k);
+    P=lerpPose(A.P,cur.P,e);dy=lerp(A.dy,cur.dy,e)-Math.sin(Math.PI*k)*55;
+    pOld=`<g opacity="${1-smooth(0,.4,k)}">${props(A.P.props,t,f<0)}</g>`;
+    props_=`<g opacity="${smooth(.6,1,k)}">${props(cur.P.props,t,f<0)}</g>`}
+  let sc=1,extra='';
+  if(PLAN.popIn&&t<ENTER){const q=t/ENTER;sc=easeOutBack(q);extra=burst(ANCHOR_X*S,(ANCHOR_Y-260)*S,q)}
+  if(PLAN.popOut&&t>dur-EXIT){const q=clamp((t-(dur-EXIT))/EXIT);sc=1-q*q;extra=burst(ANCHOR_X*S,(ANCHOR_Y-260)*S,q)}
+  document.getElementById('char').innerHTML=extra+(sc>0.01?place(pOld+props_+figure(P,blinkAt(t),m),ANCHOR_X*S,ANCHOR_Y*S+dy*S,f,{sx:sc,sy:sc}):'');
+};
+</script></body></html>

@@ -29,6 +29,7 @@ def figure(limbs, torso, head, face_dx=0, eyes="dot", mouth="smile", back=(), fr
     if FACE == "D":
         s.append(f'<ellipse cx="{fx}" cy="{hy+6}" rx="38" ry="42" fill="url(#glow)"/>')
     ex = fx + face_dx * 0.4
+    s.append(f'<g transform="translate({ex},{hy+8}) scale(1.45) translate({-ex},{-(hy+8)})">')
     if eyes == "dot":
         s.append(f'<circle cx="{ex-13}" cy="{hy}" r="5" fill="{D}"/><circle cx="{ex+13}" cy="{hy}" r="5" fill="{D}"/>')
     elif eyes == "up":
@@ -48,6 +49,7 @@ def figure(limbs, torso, head, face_dx=0, eyes="dot", mouth="smile", back=(), fr
         s.append(f'<path d="M{ex-8},{my} h16" stroke="{D}" stroke-width="4" stroke-linecap="round"/>')
     elif mouth == "hmm":
         s.append(f'<path d="M{ex-9},{my+2} q9,-6 18,0" fill="none" stroke="{D}" stroke-width="4" stroke-linecap="round"/>')
+    s.append('</g>')
     s.append(front)
     return "".join(s)
 

@@ -5,8 +5,16 @@ W, H = 600, 800
 
 def pl(pts): return " ".join(f"{x},{y}" for x, y in pts)
 
+FACE = os.environ.get("FACE", "A")
+FACES = {  # face fill, face outline, feature colour
+    "A": ("#0a1a0e", None, "#f3efe4"),   # dark hood opening, cream features
+    "B": (None, None, "#f3efe4"),        # no opening: features straight on green
+    "C": ("none", "#e8922e", "#f3efe4"), # transparent opening with orange rim
+    "D": ("#0a1a0e", None, "#e8922e"),   # dark opening, orange glowing features
+}
 def figure(limbs, torso, head, face_dx=0, eyes="dot", mouth="smile", back=(), front=""):
     hx, hy = head
+    ff, fo, D = FACES[FACE]
     s = [back and "".join(back) or ""]
     # outline pass then fill pass -> one merged silhouette like the logo
     for col, add in ((O, 10), (G, 0)):
@@ -16,7 +24,10 @@ def figure(limbs, torso, head, face_dx=0, eyes="dot", mouth="smile", back=(), fr
     # hood
     s.append(f'<path d="M{hx-56},{hy+20} Q{hx-62},{hy-58} {hx+2},{hy-66} Q{hx+60},{hy-60} {hx+56},{hy+14} Q{hx+40},{hy+62} {hx},{hy+64} Q{hx-44},{hy+62} {hx-56},{hy+20}Z" fill="{G}" stroke="{O}" stroke-width="6" stroke-linejoin="round"/>')
     fx = hx + face_dx
-    s.append(f'<ellipse cx="{fx}" cy="{hy+6}" rx="38" ry="42" fill="{C}"/>')
+    if ff:
+        s.append(f'<ellipse cx="{fx}" cy="{hy+6}" rx="38" ry="42" fill="{ff}"' + (f' stroke="{fo}" stroke-width="4"' if fo else '') + '/>')
+    if FACE == "D":
+        s.append(f'<ellipse cx="{fx}" cy="{hy+6}" rx="38" ry="42" fill="url(#glow)"/>')
     ex = fx + face_dx * 0.4
     if eyes == "dot":
         s.append(f'<circle cx="{ex-13}" cy="{hy}" r="5" fill="{D}"/><circle cx="{ex+13}" cy="{hy}" r="5" fill="{D}"/>')
@@ -42,6 +53,7 @@ def figure(limbs, torso, head, face_dx=0, eyes="dot", mouth="smile", back=(), fr
 
 def svg(body, bg=False):
     b = f'<rect width="{W}" height="{H}" fill="#0b0f0c"/>' if bg else ""
+    b = '<defs><radialGradient id="glow"><stop offset="0" stop-color="#e8922e" stop-opacity=".18"/><stop offset="1" stop-color="#e8922e" stop-opacity="0"/></radialGradient></defs>' + b
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">{b}{body}</svg>'
 
 def legs_stand(hip=(300,450)):
@@ -105,6 +117,7 @@ P["07_shocked"] = figure(
     [[SH,(232,236),(226,162)], [SH,(368,236),(374,162)]] + legs_stand(), T_STAND, (300,180), 0, "dot", "o",
     front=f'<text x="410" y="120" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="100" fill="{O}">!</text>'
           + lines("M206,128 l-24,-20", "M394,128 l24,-20", "M300,96 l0,-24", col=C, w=5))
+
 
 os.makedirs(OUT, exist_ok=True)
 for name, body in P.items():

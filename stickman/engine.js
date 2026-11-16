@@ -118,3 +118,14 @@ function place(inner,x,y,f,{sx=1,sy=1,rot=0,op=1}={}){
 function burst(x,y,q){if(q<=0||q>=1)return '';let s='';for(let i=0;i<10;i++){const a=i/10*Math.PI*2,r=40+q*140;
   s+=`<circle cx="${x+Math.cos(a)*r}" cy="${y+Math.sin(a)*r}" r="${9*(1-q)}" fill="${i%2?O:C}"/>`}return s}
 
+
+/* ---------- one-call helper for embedding in any design ----------
+   stickmanSVG('wave', t, {x, y, scale, flip, mouth, blink}) -> SVG string
+   x,y = where the feet stand; mouth 0..1 (lip sync); blink 0..1        */
+function stickmanSVG(pose,t,o={}){
+  const {x=300,y=680,scale=1,flip=false,mouth=0,blink=0}=o,old=SCALE;SCALE=scale;
+  const {P,dy}=animate(POSES[pose],pose,t,mouth);
+  const s=place(props(P.props,t,flip)+figure(P,blink,mouth),x,y+dy*scale,flip?-1:1);
+  SCALE=old;return s;
+}
+function stickmanBlink(t){const p=t%3.7;return p<.14?Math.sin(p/.14*Math.PI):0}

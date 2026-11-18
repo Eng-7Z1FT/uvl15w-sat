@@ -3,6 +3,7 @@ const G='#1e6b2f',O='#e8922e',C='#f3efe4',D='#0a1a0e';
 const SH=[300,268];
 const LEGS=[[[300,450],[272,560],[258,678],[228,682]],[[300,450],[328,560],[342,678],[372,682]]];
 const TORSO=[[300,250],[300,450]];
+const SEAT_LEGS=[[[296,548],[392,552],[398,682],[428,688]],[[296,548],[382,566],[372,692],[402,698]]],SEAT_TORSO=[[330,340],[296,548]];
 const base=o=>Object.assign({legs:LEGS,torso:TORSO,head:[300,180],dx:0,eyes:'dot',mouth:'smile',props:null},o);
 const down=(o,dy)=>JSON.parse(JSON.stringify(o),(k,v)=>Array.isArray(v)&&v.length===2&&typeof v[0]==='number'?[v[0],v[1]+dy]:v);
 const POSES={
@@ -18,6 +19,14 @@ const POSES={
     torso:[[300,250],[300,440]],eyes:'happy',mouth:'open',props:'confetti'}),52),
   talk:base({arms:[[SH,[258,350],[250,432]],[SH,[356,330],[392,392]]],dx:4}),
   shocked:base({arms:[[SH,[232,236],[226,162]],[SH,[368,236],[374,162]]],mouth:'o',props:'shocked'}),
+  /* --- desk scene poses (seated legs = typing legs); hand of arm 1 holds the item --- */
+  sit_idle:base({arms:[[[328,368],[368,444],[430,470]],[[328,368],[384,450],[450,472]]],legs:SEAT_LEGS,torso:SEAT_TORSO,head:[348,272],dx:12}),
+  sit_reach:base({arms:[[[328,368],[368,444],[430,470]],[[328,368],[404,432],[476,474]]],legs:SEAT_LEGS,torso:SEAT_TORSO,head:[350,276],dx:14}),
+  sit_hold:base({arms:[[[328,368],[372,444],[436,420]],[[328,368],[398,420],[414,338]]],legs:SEAT_LEGS,torso:SEAT_TORSO,head:[342,270],dx:10}),
+  sit_tablet:base({arms:[[[328,368],[382,432],[430,406]],[[328,368],[394,426],[442,400]]],legs:SEAT_LEGS,torso:SEAT_TORSO,head:[348,272],dx:12,eyes:'focus',mouth:'flat'}),
+  stand_hold:base({arms:[[SH,[240,336],[214,296]],[SH,[372,322],[394,238]]],dx:6}),
+  stand_point_hold:base({arms:[[SH,[372,250],[470,206]],[SH,[326,352],[338,432]]],dx:10}),
+  stand_tablet:base({arms:[[SH,[318,352],[384,374]],[SH,[338,350],[404,364]]],dx:8,eyes:'focus',mouth:'flat'}),
 };
 
 /* ---------- math ---------- */
@@ -53,6 +62,9 @@ function animate(P,name,t,m){
   if(name==='typing'){P.arms[0][2][1]+=Math.max(0,Math.sin(t*18))*-6;h[1]+=Math.max(0,Math.sin(t*18+2))*-6}
   if(name==='thinking'){h[1]+=Math.sin(t*4)*2.5}
   if(name==='talk'){h[0]+=Math.sin(t*3.1)*10+m*8;h[1]+=Math.sin(t*2.3)*8-m*14;e[1]+=Math.sin(t*2.3)*3}
+  if(name==='sit_hold'||name==='stand_hold'){const g=P.arms[0][2];g[0]+=Math.sin(t*3)*10+m*6;g[1]+=Math.sin(t*2.2)*7-m*12;h[1]+=Math.sin(t*1.7)*4}
+  if(name==='stand_point_hold'){P.arms[0][2][1]+=Math.sin(t*2.5)*6-m*8}
+  if(name==='sit_tablet'||name==='stand_tablet'){P.arms[0][2][1]+=Math.max(0,Math.sin(t*9))*-5;h[1]+=Math.sin(t*1.5)*2}
   if(name==='key'){h[1]+=Math.sin(t*6)*5}
   if(name==='shocked'){const s=Math.sin(t*38)*2;P.head[0]+=s;P.arms.forEach(a=>a[2][0]+=s)}
   if(name==='celebrate'){dy=-Math.abs(Math.sin(t*5))*28;P.arms[0][2][0]-=Math.sin(t*10)*8;h[0]+=Math.sin(t*10)*8}

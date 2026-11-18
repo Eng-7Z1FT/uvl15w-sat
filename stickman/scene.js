@@ -1,7 +1,7 @@
 /* 7Z1FT desk scene (inspired by the logo): tower, car, desk with radios / tablet,
    stool, and a director that plays a keyframe script for the character.
    Needs engine.js loaded first. Stage is 1920x1080, floor at y=900. */
-const SC={W:1920,H:1080,FLOOR:976,S:1.19,SEAT_X:1625,BG:'assets/logo_cutout.png',GROUND:'#0a160d'};
+const SC={W:1920,H:1080,FLOOR:976,S:1.19,SEAT_X:1625,BG:'assets/logo_cutout.png',GROUND:'#081207'};
 
 /* ---------- held / desk items (drawn in character-native units, origin = grip) ---------- */
 function itemRadio(t,tx){
@@ -95,7 +95,7 @@ function laptop(t){
   return `<g transform="translate(1290,686)"><polygon points="0,0 120,0 112,-10 8,-10" fill="${G}" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
   <polygon points="10,-10 30,-10 2,-96 -18,-96" fill="${G}" stroke="${O}" stroke-width="5" stroke-linejoin="round"/><circle cx="6" cy="-56" r="5" fill="${c}"/></g>`;
 }
-function brand(){return `<text x="1880" y="1036" direction="ltr" text-anchor="end" font-family="Arial Black,Arial" font-weight="900" font-size="46" fill="${C}">@Eng_<tspan fill="${O}">7Z1FT</tspan></text>`}
+function brand(){return `<image href="assets/handle.png" x="1464" y="988" width="416" height="64"/>`}  // the handle cut from the logo itself
 
 /* ---------- director ---------- */
 const SCRIPTS={

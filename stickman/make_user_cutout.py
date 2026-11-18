@@ -12,13 +12,13 @@ r0 = ((np.array([[1330,660],[1400,692]]) - [0, 275]) * 0.75).astype(int); a[r0[0
 im[..., 3] = a
 big = cv2.resize(im, (1920, 805), interpolation=cv2.INTER_CUBIC)
 out = np.zeros((1080, 1920, 4), np.uint8); out[275:1080] = big
-out[934:952, 764:788] = (4, 9, 4, 255)   # white speck next to the tyre
+# white speck next to the tyre: covered by starting the logo strip a few rows higher (842)
 cv2.imwrite('assets/logo_cutout.png', out)
 # the image ends at the ground line and cuts the tyre: fill that strip (tyre bottom + dark ground) from the logo
 logo = cv2.imread('assets/logo_original.png')
-strip = logo[846:868, 430:700]
-strip = cv2.resize(strip, (round(270 * 4 / 3), round(22 * 4 / 3)), interpolation=cv2.INTER_CUBIC)
-y0, x0 = round((846 - 130) * 4 / 3), round(430 * 4 / 3)
+strip = logo[842:868, 430:700]
+strip = cv2.resize(strip, (round(270 * 4 / 3), round(26 * 4 / 3)), interpolation=cv2.INTER_CUBIC)
+y0, x0 = round((842 - 130) * 4 / 3), round(430 * 4 / 3)
 # align the logo to the user's image (they differ by a few px): match the car's lower body
 tpl = cv2.resize(logo[770:840, 300:900], None, fx=4/3, fy=4/3, interpolation=cv2.INTER_CUBIC)
 ty, tx = round((770 - 130) * 4 / 3), round(300 * 4 / 3)
@@ -28,5 +28,5 @@ dx, dy = mx - 30, my - 30; print('offset', dx, dy, round(sc, 3))
 y0, x0 = y0 + dy, x0 + dx
 out[y0:y0 + strip.shape[0], x0:x0 + strip.shape[1], :3] = strip
 out[y0:y0 + strip.shape[0], x0:x0 + strip.shape[1], 3] = 255
-out[934:952, 764:788] = (4, 9, 4, 255)   # white speck next to the tyre
+# white speck next to the tyre: covered by starting the logo strip a few rows higher (842)
 cv2.imwrite('assets/logo_cutout.png', out)

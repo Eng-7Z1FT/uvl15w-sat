@@ -149,7 +149,7 @@ const DESK_SPOT={radio:[1420,748],tablet:[1420,700]};
 const LOGO={tower:[408,462],lights:[[273,793],[540,800]],nodes:[[1003,800],[978,893],[931,940]],port:[890,905]};
 function logoFx(t,{boost=0,flash=0,link=false}){
   let s='';const [tx,ty]=LOGO.tower;
-  if(boost>0)for(let i=0;i<3;i++){const ph=(t*1.3+i/3)%1,r=150+ph*150;
+  if(false)for(let i=0;i<3;i++){const ph=(t*1.3+i/3)%1,r=150+ph*150;
     for(const dir of [-1,1])s+=`<path d="M${tx+dir*r*.5},${ty-r*.86} A${r},${r} 0 0 ${dir>0?1:0} ${tx+dir*r*.5},${ty+r*.86}" fill="none" stroke="${O}" stroke-width="12" stroke-linecap="round" opacity="${((1-ph)*.7*boost).toFixed(2)}"/>`}
   if(flash>0)for(const [x,y] of LOGO.lights)s+=`<circle cx="${x}" cy="${y}" r="${60+flash*70}" fill="url(#glow)" opacity="${flash.toFixed(2)}"/>`;
   if(link)LOGO.nodes.forEach(([x,y],i)=>{const ph=(t*.9+i/3)%1;s+=`<circle cx="${x}" cy="${y}" r="${10+ph*18}" fill="none" stroke="${C}" stroke-width="4" opacity="${(1-ph).toFixed(2)}"/>`});

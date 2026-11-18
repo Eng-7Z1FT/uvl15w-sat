@@ -60,6 +60,9 @@ if len(sys.argv) > 3:
         if st[i, cv2.CC_STAT_AREA] < 1500: sil[lab == i] = 0                  # specks
     tower = (xx > 190) & (xx < 430) & (yy > 360) & (yy < 648) & (bgpix > 0)   # lattice holes + gaps between arcs
     alpha = (sil > 0) & (keep > 0) & ~tower
+    for _ in range(3):   # peel off the green halo left by the closing step
+        out = cv2.dilate((~alpha).astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
+        alpha &= ~(out & (bgpix > 0))
     # console + laptop parts that were hidden behind the man: keep them, coloured from the repaired image
     side = (yy - 694) * (910 - 1009) - (xx - 1009) * (856 - 694) > 0       # left of the console's right edge
     alpha |= (pm > 0) & side & (yy > 694) & (yy < GROUND)

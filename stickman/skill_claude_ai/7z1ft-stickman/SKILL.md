@@ -1,43 +1,63 @@
 ---
 name: 7z1ft-stickman
-description: The 7Z1FT stickman character (green hooded stickman with orange outline, from the Eng_7Z1FT logo) for the user's reels and videos about TYT radios and cars. Use whenever the user mentions الستكمان، الشخصية، شخصيتي، ستكمان 7Z1FT، or asks to put/add/ركّب the character into a design, reel, slide, HTML animation or video, or asks for a new pose or expression for it.
+description: شخصية الستكمان الخاصة بـ 7Z1FT (ستكمان أخضر بحدود برتقالية من شعار Eng_7Z1FT) ومشهد الشعار الشفاف (البرج والسيارة والجهاز) لريلز وفيديوهات أجهزة TYT اللاسلكية وبرمجة السيارات. استخدمها كل ما ذكر المستخدم الستكمان أو الشخصية أو شخصيتي أو المشهد، أو طلب يركّب الشخصية في تصميم أو ريلز أو شريحة أو أنميشن HTML أو فيديو، أو طلب وضعية أو تعبير جديد لها.
 ---
 
-# 7Z1FT stickman
+# الستكمان ومشهد 7Z1FT
 
-The user's own mascot. `poses.png` shows the approved look; `engine.js` is the drawing code — always use it, never redraw the character from scratch.
+هذي شخصية المستخدم الخاصة. `approved_sample.png` هي العينة اللي اعتمدها، وهي المرجع لأي شغل. لا ترسم الشخصية ولا المشهد من الصفر أبداً. استخدم الكود والصور اللي في المهارة.
 
-## Approved look (don't change unless asked)
-- Body: thick stick limbs, green `#1e6b2f` with orange `#e8922e` outline (one merged silhouette).
-- Head: hood shape, fully green with orange outline. **No white/cream face fill.** Features drawn directly on the green in cream `#f3efe4`, enlarged.
-- Background it was designed on: very dark green/black `#0b0f0c`.
+## قواعد الشغل مع المستخدم
+- **الكلام بالعربي دائماً**، بلهجة خليجية ومختصر.
+- **قبل أي فيديو أو تصدير طويل:** اعرض صورة عينة وحدة وانتظر الاعتماد. هذا يوفّر عليه التوكن.
+- **راجع العينة بنفسك قبل ما ترسلها:** كبّر على الحواف وعلى الأماكن اللي عدّلتها.
+- **إذا أعطاك صورة أو ملف جاهز، استخدمه هو نفسه.** لا تعيد بناءه من الصفر.
+- **الريلز بدون خلفية:** المشهد شفاف، وفيه بس العناصر والشريط الغامق اللي تحت.
 
-## Poses (`POSES` in engine.js)
-| pose | use for | props drawn automatically |
-|---|---|---|
-| `wave` | greeting / goodbye | motion lines |
-| `point` | explaining, "شوفوا" | pointing lines |
-| `talk` | general talking, hand gestures | — |
-| `typing` | programming, computer | stool, table, laptop |
-| `thinking` | questions, "ليش" | ? marks |
-| `key` | car keys, remotes | car key + sparkles |
-| `shocked` | warning, problem | ! mark |
-| `celebrate` | success, "تمت" | falling confetti |
+## الشكل المعتمد (لا تغيّره إلا إذا طلب)
+- **الجسم:** خطوط سميكة، أخضر `#1e6b2f` بحد برتقالي `#e8922e`.
+- **الراس:** أخضر كامل بحد برتقالي، **بدون وجه أبيض**. الملامح كريمية `#f3efe4` ومكبّرة.
+- **المشهد:** `assets/logo_cutout.png` (عناصر الشعار نفسها بخلفية شفافة)، ثم الشريط الغامق `#081207`، ثم `assets/tyre_patch.png` (أسفل الكفر).
+- **اسم الحساب:** `assets/handle.png`، مقصوص من الشعار بخطه الأصلي. لا تكتبه بخط ثاني.
 
-## Putting it in an HTML design / reel
-1. Paste the whole of `engine.js` inline in a `<script>` (artifacts can't load sibling files).
-2. Have an `<svg>` with a `<g id="char">`, then every animation frame:
-   ```js
-   document.getElementById('char').innerHTML =
-     stickmanSVG('point', t, {x: 540, y: 1700, scale: 1.5, flip: false, mouth: m, blink: stickmanBlink(t)});
-   ```
-   `x,y` = where the feet stand; `scale` 1 ≈ 590px tall; `flip:true` faces left; `mouth` 0..1 opens the mouth (lip sync); `t` = seconds.
-3. Lip sync: Web Audio `AnalyserNode` RMS → `mouth` (see `reel_template.html`). Without audio use the fake talk pattern there.
-4. Pose changes: blend with `lerpPose(A,B,k)` over ~0.45s and a small hop, as in the template.
-5. Start from `reel_template.html` (1080×1920 reel with a TIMELINE of `{t, pose, text}`) for any reel — edit TIMELINE, captions, colours of the background only.
+## الملفات
+| الملف | الوظيفة |
+|---|---|
+| `engine.js` | رسم الشخصية: الوضعيات `POSES`، والحركة `animate`، والرسم `figure` و`props`، والدالة `stickmanSVG()` |
+| `scene.js` | مشهد الشعار + الطاولة والأجهزة + المخرج اللي يشغّل السكربتات (`SCRIPTS.radio` و`SCRIPTS.car`) |
+| `scene.html` | صفحة المشهد، وتحتاج ملفات `assets/` جنبها |
+| `scene_standalone.html` | نفس المشهد بملف واحد (الصور داخله)، **ابدأ منه داخل الـArtifacts** |
+| `reel_template.html` | قالب ريلز 1080×1920 فيه جدول زمني للوضعيات |
+| `poses.png` | كل الوضعيات |
 
-## Choosing poses from a script / transcript
-Match words (Gulf Arabic): السلام/هلا/حياكم → wave · نجح/تمت/الحمد لله/اشتغل → celebrate · انتبه/احذر/مشكلة/غلط → shocked · مفتاح/ريموت/سيارة → key · برمجة/برنامج/كمبيوتر/كيبل → typing · ليش/كيف/سؤال/؟ → thinking · شوفوا/لاحظوا/هنا/جهاز/تردد/TYT → point · else alternate talk/point. Keep each pose at least 2 seconds.
+## الوضعيات
+- **العامة:** `wave` تلويح، `point` يأشّر، `talk` يتكلم، `typing` يبرمج، `thinking` يفكر، `key` مفتاح سيارة، `shocked` مصدوم، `celebrate` يحتفل.
+- **مشهد الطاولة:** `sit_idle`، `sit_reach`، `sit_hold` (جالس ماسك الجهاز اليدوي)، `sit_tablet`، `stand_hold`، `stand_point_hold`، `stand_tablet`.
+- **المشي:** إذا تغيّر `x` بين مفتاحين في السكربت، يمشي تلقائياً.
 
-## Full video pipeline
-For burning the character onto a real video file (lip sync from the audio track, transparent ProRes export), the code lives in the user's GitHub repo `Eng-7Z1FT/uvl15w-sat`, folder `stickman/auto/` — that needs Claude Code with the repo. In chat, build the reel as HTML with the template instead.
+## السكربتات
+- **`radio`:** جالس قدام الجهاز الثابت، يمسك الجهاز اليدوي ويشرح، يقوم ويمشي، يأشّر على البرج، يفكر، ويكمل الشرح.
+- **`car`:** يمسك التابلت الموصول بالسيارة، يقوم ويمشي للسيارة، يأشّر، تمتلي شريطة البرمجة، يحتفل، وتومض الأنوار.
+
+كل مفتاح في السكربت شكله: `{t: الثانية, pose, x, hold:'radio'|'tablet', talk:1, fx:'tx'|'tower'|'link'|'prog'|'car'}`.
+
+## اختيار الحركة من الكلام
+| الكلام | الحركة |
+|---|---|
+| السلام، هلا، حياكم | `wave` |
+| نجح، تمت، الحمد لله، اشتغل | `celebrate` |
+| انتبه، احذر، مشكلة، غلط | `shocked` |
+| مفتاح، ريموت، سيارة | `key` |
+| برمجة، برنامج، كمبيوتر، كيبل | `typing` أو `sit_tablet` |
+| ليش، كيف، سؤال، أو علامة ؟ | `thinking` |
+| شوفوا، هنا، جهاز، تردد، TYT | `point` أو `stand_point_hold` |
+
+**خل كل حركة ثانيتين على الأقل.**
+
+## تصدير شفاف للريلز
+1. ارسم كل إطار بخلفية شفافة: `html,body{background:transparent}` ولقطة الشاشة بـ `omitBackground`.
+2. ركّب الإطارات:
+   - **MOV (ProRes 4444):** `ffmpeg -framerate 30 -i f%05d.png -c:v prores_ks -profile:v 4444 -pix_fmt yuva444p10le out.mov`
+   - **أو WebM:** `-c:v libvpx-vp9 -pix_fmt yuva420p`
+
+ملف الفيديو الكامل وتركيب الشخصية على فيديو حقيقي موجودين في ريبو المستخدم `Eng-7Z1FT/uvl15w-sat` داخل `stickman/`، ويحتاجون Claude Code.

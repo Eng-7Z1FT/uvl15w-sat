@@ -38,3 +38,15 @@ Rendering runs at roughly real time (≈1s per second of video at 25-30fps). For
 - **Hold time:** `MIN_HOLD` (seconds before a pose may change).
 - **New pose:** add to `POSES` in `engine.js` (2 arms × 3 points, 2 legs × 4 points, torso, head, `dx`, `eyes`, `mouth`, `props`), motion in `animate()`, props in `props()`; add a rule in `RULES`; add it to `gen.py` too if a static PNG is wanted, then re-run `python3 stickman/gen.py stickman/svg && node stickman/render.js stickman` from the repo root (render.js takes the stickman dir).
 - After changes, test on a short clip before the real video. Commit code changes (not user media) and push.
+
+## Working rules with the user (approved)
+- Reply in Gulf Arabic only — every message, including progress notes.
+- Before any video/long render: send ONE sample still, review it yourself zoomed in, then wait for approval.
+- If the user hands you a finished image/file, use it as-is; don't rebuild it.
+- Reels are transparent: no background, only the scene elements + the dark ground band.
+
+## Logo desk scene (approved)
+- `stickman/scene.js` + `stickman/scene.html` (modes `radio`, `car`); layer order: `assets/logo_cutout.png` (built from the user's approved image by `stickman/make_user_cutout.py`), ground band `#081207`, `assets/tyre_patch.png`, furniture/laptop/radios, character, `assets/handle.png` (handle cut from the logo — never retype it).
+- Approved still: `stickman/sample_transparent.png` (`sceneFrame('radio',1,0,0)`).
+- Transparent export: screenshot with `omitBackground` and `html,body{background:transparent}`, then ProRes 4444 (`yuva444p10le`) or VP9 WebM (`yuva420p`).
+- The claude.ai skill package is rebuilt with `python3 stickman/build_skill.py` (from `stickman/`).

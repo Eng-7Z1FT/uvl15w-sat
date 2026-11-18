@@ -1,7 +1,7 @@
 /* 7Z1FT desk scene (inspired by the logo): tower, car, desk with radios / tablet,
    stool, and a director that plays a keyframe script for the character.
    Needs engine.js loaded first. Stage is 1920x1080, floor at y=900. */
-const SC={W:1920,H:1080,FLOOR:976,S:1.19,SEAT_X:1625,BG:'assets/logo_scene.jpg'};
+const SC={W:1920,H:1080,FLOOR:976,S:1.19,SEAT_X:1625,BG:'assets/logo_cutout.png',GROUND:'#081207'};
 
 /* ---------- held / desk items (drawn in character-native units, origin = grip) ---------- */
 function itemRadio(t,tx){
@@ -95,7 +95,7 @@ function laptop(t){
   return `<g transform="translate(1290,686)"><polygon points="0,0 120,0 112,-10 8,-10" fill="${G}" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
   <polygon points="10,-10 30,-10 2,-96 -18,-96" fill="${G}" stroke="${O}" stroke-width="5" stroke-linejoin="round"/><circle cx="6" cy="-56" r="5" fill="${c}"/></g>`;
 }
-function brand(){return `<text x="1880" y="1036" direction="ltr" text-anchor="end" font-family="Arial Black,Arial" font-weight="900" font-size="46" fill="${C}">@Eng_<tspan fill="${O}">7Z1FT</tspan></text>`}
+function brand(){return `<image href="assets/handle.png" x="1464" y="988" width="416" height="64"/>`}  // the handle cut from the logo itself
 
 /* ---------- director ---------- */
 const SCRIPTS={
@@ -149,14 +149,19 @@ const DESK_SPOT={radio:[1420,748],tablet:[1420,700]};
 const LOGO={tower:[408,462],lights:[[273,793],[540,800]],nodes:[[1003,800],[978,893],[931,940]],port:[890,905]};
 function logoFx(t,{boost=0,flash=0,link=false}){
   let s='';const [tx,ty]=LOGO.tower;
-  if(boost>0)for(let i=0;i<3;i++){const ph=(t*1.3+i/3)%1,r=150+ph*150;
+  if(false)for(let i=0;i<3;i++){const ph=(t*1.3+i/3)%1,r=150+ph*150;
     for(const dir of [-1,1])s+=`<path d="M${tx+dir*r*.5},${ty-r*.86} A${r},${r} 0 0 ${dir>0?1:0} ${tx+dir*r*.5},${ty+r*.86}" fill="none" stroke="${O}" stroke-width="12" stroke-linecap="round" opacity="${((1-ph)*.7*boost).toFixed(2)}"/>`}
   if(flash>0)for(const [x,y] of LOGO.lights)s+=`<circle cx="${x}" cy="${y}" r="${60+flash*70}" fill="url(#glow)" opacity="${flash.toFixed(2)}"/>`;
   if(link)LOGO.nodes.forEach(([x,y],i)=>{const ph=(t*.9+i/3)%1;s+=`<circle cx="${x}" cy="${y}" r="${10+ph*18}" fill="none" stroke="${C}" stroke-width="4" opacity="${(1-ph).toFixed(2)}"/>`});
   return s;
 }
+function logoLaptop(){ // lid redrawn from the logo (its right side was hidden by the man)
+  return `<polygon points="1203,615 1309,612 1349,749 1256,760" fill="#0b1d10"/>
+  <polygon points="1233,632 1297,631 1333,741 1263,747" fill="#1f5a2a"/>
+  <polyline points="1220,680 1203,615 1309,612 1348,742" fill="none" stroke="${O}" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>`;
+}
 function logoFurniture(){
-  return `<path d="M1345,752 L1214,968" stroke="#0b1d10" stroke-width="12" stroke-linecap="round"/>
+  return logoLaptop()+`<path d="M1345,752 L1214,968" stroke="#0b1d10" stroke-width="12" stroke-linecap="round"/>
   <path d="M1452,762 V974" stroke="#0b1d10" stroke-width="12" stroke-linecap="round"/><path d="M1452,766 V970" stroke="${O}" stroke-width="4" stroke-linecap="round"/>
   <rect x="1168" y="746" width="304" height="18" rx="5" fill="#1d5527" stroke="#0b1d10" stroke-width="6"/><path d="M1174,748 H1466" stroke="${O}" stroke-width="4" stroke-linecap="round"/>
   <path d="M1578,846 L1566,974 M1690,846 L1704,974 M1572,912 H1698" stroke="#0b1d10" stroke-width="13" stroke-linecap="round"/>
@@ -169,8 +174,8 @@ function sceneFrame(name,t,m,blink){
   const prog=fx==='prog'?clamp((t-K.t)/3.4):/car/.test(fx)?1:0;
   const flash=fx==='car'?Math.max(0,Math.sin(t*9)):0;
   let s=`<defs><radialGradient id="glow"><stop offset="0" stop-color="#fff6d8" stop-opacity=".95"/><stop offset="1" stop-color="#fff6d8" stop-opacity="0"/></radialGradient></defs>
-  <image href="${SC.BG}" x="0" y="0" width="1920" height="1080"/>`
-    +logoFx(t,{boost:fx==='tower'?1:tx?.5:0,flash,link:linkOn||tx})+beeps(t,fx==='car')+logoFurniture();
+  <image href="${SC.BG}" x="0" y="0" width="1920" height="1080"/><rect y="${SC.FLOOR-14}" width="1920" height="${1094-SC.FLOOR}" fill="${SC.GROUND}"/><image href="assets/tyre_patch.png" x="573" y="941" width="360" height="35"/>`
+    +logoFx(t,{boost:0,flash,link:linkOn})+beeps(t,fx==='car')+logoFurniture();
   if(script.items.includes('radio'))s+=`<g transform="translate(1215,688) scale(.98)">${baseRadio(t,tx||fx==='tower').replace('translate(1262,620)','translate(0,0)')}</g>`;
   const held=K.hold||null,hand=P.arms[1][2];
   for(const it of script.items){if(it===held)continue;const [ix,iy]=DESK_SPOT[it];

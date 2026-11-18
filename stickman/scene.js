@@ -155,8 +155,13 @@ function logoFx(t,{boost=0,flash=0,link=false}){
   if(link)LOGO.nodes.forEach(([x,y],i)=>{const ph=(t*.9+i/3)%1;s+=`<circle cx="${x}" cy="${y}" r="${10+ph*18}" fill="none" stroke="${C}" stroke-width="4" opacity="${(1-ph).toFixed(2)}"/>`});
   return s;
 }
+function logoLaptop(){ // lid redrawn from the logo (its right side was hidden by the man)
+  return `<polygon points="1203,615 1309,612 1349,749 1256,760" fill="#0b1d10"/>
+  <polygon points="1233,632 1297,631 1333,741 1263,747" fill="#1f5a2a"/>
+  <polyline points="1220,680 1203,615 1309,612 1348,742" fill="none" stroke="${O}" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>`;
+}
 function logoFurniture(){
-  return `<path d="M1345,752 L1214,968" stroke="#0b1d10" stroke-width="12" stroke-linecap="round"/>
+  return logoLaptop()+`<path d="M1345,752 L1214,968" stroke="#0b1d10" stroke-width="12" stroke-linecap="round"/>
   <path d="M1452,762 V974" stroke="#0b1d10" stroke-width="12" stroke-linecap="round"/><path d="M1452,766 V970" stroke="${O}" stroke-width="4" stroke-linecap="round"/>
   <rect x="1168" y="746" width="304" height="18" rx="5" fill="#1d5527" stroke="#0b1d10" stroke-width="6"/><path d="M1174,748 H1466" stroke="${O}" stroke-width="4" stroke-linecap="round"/>
   <path d="M1578,846 L1566,974 M1690,846 L1704,974 M1572,912 H1698" stroke="#0b1d10" stroke-width="13" stroke-linecap="round"/>

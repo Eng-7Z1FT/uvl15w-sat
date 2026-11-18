@@ -1,7 +1,7 @@
 /* 7Z1FT desk scene (inspired by the logo): tower, car, desk with radios / tablet,
    stool, and a director that plays a keyframe script for the character.
    Needs engine.js loaded first. Stage is 1920x1080, floor at y=900. */
-const SC={W:1920,H:1080,FLOOR:976,S:1.19,SEAT_X:1625,BG:'assets/logo_scene.jpg'};
+const SC={W:1920,H:1080,FLOOR:976,S:1.19,SEAT_X:1625,BG:'assets/logo_cutout.png',GROUND:'#0a160d'};
 
 /* ---------- held / desk items (drawn in character-native units, origin = grip) ---------- */
 function itemRadio(t,tx){
@@ -169,7 +169,7 @@ function sceneFrame(name,t,m,blink){
   const prog=fx==='prog'?clamp((t-K.t)/3.4):/car/.test(fx)?1:0;
   const flash=fx==='car'?Math.max(0,Math.sin(t*9)):0;
   let s=`<defs><radialGradient id="glow"><stop offset="0" stop-color="#fff6d8" stop-opacity=".95"/><stop offset="1" stop-color="#fff6d8" stop-opacity="0"/></radialGradient></defs>
-  <image href="${SC.BG}" x="0" y="0" width="1920" height="1080"/>`
+  <rect y="${SC.FLOOR}" width="1920" height="${1080-SC.FLOOR}" fill="${SC.GROUND}"/><image href="${SC.BG}" x="0" y="0" width="1920" height="1080"/>`
     +logoFx(t,{boost:fx==='tower'?1:tx?.5:0,flash,link:linkOn||tx})+beeps(t,fx==='car')+logoFurniture();
   if(script.items.includes('radio'))s+=`<g transform="translate(1215,688) scale(.98)">${baseRadio(t,tx||fx==='tower').replace('translate(1262,620)','translate(0,0)')}</g>`;
   const held=K.hold||null,hand=P.arms[1][2];

@@ -40,3 +40,30 @@ frame = res[130:940, 0:1440]                          # 1440x810 = 16:9
 frame = cv2.resize(frame, (1920, 1080), interpolation=cv2.INTER_LANCZOS4)
 cv2.imwrite(out, frame, [cv2.IMWRITE_JPEG_QUALITY, 93])
 print('ok', frame.shape)
+
+# ---- transparent cut-out of the logo elements (tower, car, console) for reels ----
+if len(sys.argv) > 3:
+    src8 = cv2.imread(src)
+    bgpix = ((gch > 55) & (gch - r > 18) & (gch - b > 8)).astype(np.uint8)
+    keep = np.ones((H, W), np.uint8)
+    keep[~(((xx-CX)**2 + (yy-CY)**2 < R*R) & (yy < GROUND + 8))] = 0     # outside disk / below ground
+    keep[(yy < 555) & (xx > 430)] = 0                                    # shahada + sword
+    keep[pm > 0] = 0                                                     # the seated man
+    # object silhouettes: non-green pixels, closed and hole-filled, so car/console fills stay
+    obj = ((bgpix == 0) & (keep > 0)).astype(np.uint8) * 255
+    obj = cv2.morphologyEx(obj, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25)))
+    ff = obj.copy(); m2 = np.zeros((H + 2, W + 2), np.uint8); cv2.floodFill(ff, m2, (5, 5), 255)
+    sil = obj | cv2.bitwise_not(ff)
+    n, lab, st, _ = cv2.connectedComponentsWithStats(sil)
+    for i in range(1, n):
+        if st[i, cv2.CC_STAT_AREA] < 1500: sil[lab == i] = 0                  # specks
+    tower = (xx > 190) & (xx < 430) & (yy > 360) & (yy < 690) & (bgpix > 0)   # lattice holes + gaps between arcs
+    alpha = (sil > 0) & (keep > 0) & ~tower
+    a = alpha.astype(np.uint8) * 255
+    a = cv2.morphologyEx(a, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))        # drop specks
+    a = cv2.erode(a, np.ones((2, 2), np.uint8))
+    a = cv2.GaussianBlur(a, (3, 3), 0)
+    rgba = np.dstack([src8, a])[130:940, 0:1440]
+    rgba = cv2.resize(rgba, (1920, 1080), interpolation=cv2.INTER_LANCZOS4)
+    cv2.imwrite(sys.argv[3], rgba)
+    print('cutout ok')

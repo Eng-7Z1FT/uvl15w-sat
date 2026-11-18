@@ -1,7 +1,7 @@
 /* 7Z1FT desk scene (inspired by the logo): tower, car, desk with radios / tablet,
    stool, and a director that plays a keyframe script for the character.
    Needs engine.js loaded first. Stage is 1920x1080, floor at y=900. */
-const SC={W:1920,H:1080,FLOOR:900,S:.9,SEAT_X:1640};
+const SC={W:1920,H:1080,FLOOR:900,S:1.05,SEAT_X:1648};
 
 /* ---------- held / desk items (drawn in character-native units, origin = grip) ---------- */
 function itemRadio(t,tx){
@@ -21,61 +21,81 @@ function itemTablet(t,prog){
 }
 const ITEMS={radio:itemRadio,tablet:itemTablet};
 
-/* ---------- static scene pieces (stage coords) ---------- */
+/* ---------- static scene pieces (stage coords) — layout follows the logo ---------- */
 function sceneBg(){
-  return `<defs><radialGradient id="scbg" cx=".35" cy=".25" r=".9"><stop offset="0" stop-color="#1f4a2a"/><stop offset=".6" stop-color="#11291a"/><stop offset="1" stop-color="#08130c"/></radialGradient>
-  <radialGradient id="glow"><stop offset="0" stop-color="${C}" stop-opacity=".9"/><stop offset="1" stop-color="${C}" stop-opacity="0"/></radialGradient></defs>
-  <rect width="1920" height="1080" fill="url(#scbg)"/><rect y="900" width="1920" height="180" fill="#07100a"/>
-  <path d="M0,900 H1920" stroke="${O}" stroke-width="5" opacity=".75"/>`;
+  return `<defs><radialGradient id="scbg" cx=".45" cy=".3" r=".85"><stop offset="0" stop-color="#2f7138"/><stop offset=".65" stop-color="#215a2b"/><stop offset="1" stop-color="#143a1b"/></radialGradient>
+  <radialGradient id="glow"><stop offset="0" stop-color="#fff6d8" stop-opacity=".95"/><stop offset="1" stop-color="#fff6d8" stop-opacity="0"/></radialGradient>
+  <linearGradient id="gnd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d2212"/><stop offset="1" stop-color="#050c07"/></linearGradient></defs>
+  <rect width="1920" height="1080" fill="url(#scbg)"/><rect y="900" width="1920" height="180" fill="url(#gnd)"/>
+  <path d="M120,900 H1800" stroke="${O}" stroke-width="7" stroke-linecap="round"/>
+  <path d="M300,912 H560 M720,912 H1060" stroke="${O}" stroke-width="5" stroke-linecap="round" opacity=".45"/>`;
 }
 function tower(t,boost){
-  const x=230,top=360;let s=`<g stroke="${O}" stroke-width="8" stroke-linecap="round" fill="none">
-  <path d="M${x-75},900 L${x-10},${top} M${x+75},900 L${x+10},${top} M${x},${top} V${top-55}"/>`;
-  for(let y=900,i=0;y>top+30;y-=78,i++){const w1=75-(900-y)/540*65,y2=y-78,w2=75-(900-y2)/540*65;
-    s+=`<path d="M${x-w1},${y} L${x+w2},${y2} M${x+w1},${y} L${x-w2},${y2} M${x-w2},${y2} H${x+w2}" stroke-width="5"/>`}
+  const x=300,top=300,bot=870;let s=`<g stroke="${O}" stroke-width="8" stroke-linecap="round" fill="none">
+  <path d="M${x-80},${bot} L${x-10},${top} M${x+80},${bot} L${x+10},${top} M${x},${top} V${top-60}"/>`;
+  const W=y=>80-(bot-y)/(bot-top)*70;
+  for(let y=bot;y>top+40;y-=80){const y2=y-80;s+=`<path d="M${x-W(y)},${y} L${x+W(y2)},${y2} M${x+W(y)},${y} L${x-W(y2)},${y2} M${x-W(y2)},${y2} H${x+W(y2)}" stroke-width="5"/>`}
   s+='</g>';
-  for(let i=0;i<3;i++){const ph=(t*1.2*(1+boost)+i/3)%1,r=40+ph*70,o=(1-ph)*(.55+.45*boost);
-    for(const dir of [-1,1])s+=`<path d="M${x+dir*r*.5},${top-30-r*.86} A${r},${r} 0 0 ${dir>0?1:0} ${x+dir*r*.5},${top-30+r*.86}" fill="none" stroke="${O}" stroke-width="7" stroke-linecap="round" opacity="${o.toFixed(2)}"/>`}
+  for(let i=0;i<3;i++){const ph=(t*1.1*(1+boost)+i/3)%1,r=46+ph*80,o=(1-ph)*(.6+.4*boost);
+    for(const dir of [-1,1])s+=`<path d="M${x+dir*r*.5},${top-40-r*.86} A${r},${r} 0 0 ${dir>0?1:0} ${x+dir*r*.5},${top-40+r*.86}" fill="none" stroke="${O}" stroke-width="8" stroke-linecap="round" opacity="${o.toFixed(2)}"/>`}
   return s;
 }
+const CAR_X=200, CAR_G='#1a5025', CAR_LINE='#0c2a12';
 function car(t,flash){
-  const hl=flash>0?`<circle cx="52" cy="-98" r="${60+flash*50}" fill="url(#glow)" opacity="${flash}"/>`:'';
-  return `<g transform="translate(330,900)">${hl}
-  <path d="M22,-62 Q14,-118 64,-128 L205,-142 L292,-214 Q306,-228 330,-228 L528,-228 Q552,-228 568,-210 L640,-142 L702,-134 Q738,-126 738,-92 L738,-62 Q738,-42 716,-42 L642,-42 A67,67 0 0 0 508,-42 L234,-42 A67,67 0 0 0 100,-42 L44,-42 Q22,-42 22,-62 Z" fill="${G}" stroke="${O}" stroke-width="8" stroke-linejoin="round"/>
-  <path d="M302,-146 L346,-206 L430,-206 L430,-146 Z M446,-146 L446,-206 L526,-206 Q546,-206 558,-190 L598,-146 Z" fill="${C}"/>
-  <path d="M440,-140 V-52 M226,-140 L230,-52 M36,-78 H160" stroke="#0e2a15" stroke-width="5" fill="none" stroke-linecap="round"/>
-  <path d="M30,-104 h22 M30,-114 h22 M30,-94 h22" stroke="#0e2a15" stroke-width="4"/>
-  <circle cx="52" cy="-98" r="15" fill="${flash>0?'#fff8e0':C}"/><rect x="700" y="-112" width="22" height="16" rx="5" fill="${flash>0?'#ff5a3c':'#a0402a'}"/>
-  <rect x="470" y="-122" width="30" height="7" rx="3.5" fill="#0e2a15"/>
-  ${[167,575].map(cx=>`<circle cx="${cx}" cy="-42" r="56" fill="#0a150d" stroke="${O}" stroke-width="7"/><circle cx="${cx}" cy="-42" r="24" fill="${G}" stroke="${O}" stroke-width="4"/>`).join('')}</g>`;
+  const hl=flash>0?`<circle cx="36" cy="-168" r="${70+flash*60}" fill="url(#glow)" opacity="${flash}"/><circle cx="86" cy="-170" r="${50+flash*40}" fill="url(#glow)" opacity="${flash*.8}"/>`:'';
+  const lamp=flash>0?'#fffbe8':C;
+  return `<g transform="translate(${CAR_X},900)">
+  <path d="M8,-104 L18,-196 Q24,-212 62,-216 L340,-232 L432,-328 Q452,-348 484,-350 L752,-350 Q778,-350 794,-330 L874,-236 L946,-228 Q972,-224 972,-196 L970,-116 Q968,-84 940,-84 L862,-84 A78,78 0 0 0 708,-84 L310,-84 A78,78 0 0 0 156,-84 L44,-84 Q8,-84 8,-104 Z" fill="${CAR_G}" stroke="${O}" stroke-width="9" stroke-linejoin="round"/>
+  <path d="M452,-240 L510,-326 L612,-326 L612,-240 Z M628,-240 L628,-326 L740,-326 Q760,-326 772,-310 L824,-240 Z" fill="${C}"/>
+  <path d="M14,-150 L110,-150" stroke="${CAR_LINE}" stroke-width="5"/>
+  <path d="M110,-200 L110,-96 M620,-232 V-96 M440,-232 L448,-96 M110,-168 H950" stroke="${CAR_LINE}" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M20,-128 h80 M22,-138 h78 M24,-118 h76" stroke="${CAR_LINE}" stroke-width="4"/>
+  <rect x="2" y="-112" width="112" height="20" rx="8" fill="${CAR_G}" stroke="${O}" stroke-width="6"/>
+  <rect x="890" y="-112" width="84" height="20" rx="8" fill="${CAR_G}" stroke="${O}" stroke-width="6"/>
+  <rect x="490" y="-214" width="40" height="9" rx="4" fill="${CAR_LINE}"/><rect x="664" y="-214" width="40" height="9" rx="4" fill="${CAR_LINE}"/>
+  <rect x="944" y="-206" width="24" height="34" rx="6" fill="${flash>0?'#ff6a48':'#9c3a24'}" stroke="${O}" stroke-width="3"/>
+  ${hl}<circle cx="36" cy="-168" r="20" fill="${lamp}" stroke="${O}" stroke-width="4"/><circle cx="86" cy="-170" r="15" fill="${lamp}" stroke="${O}" stroke-width="4"/>
+  ${[233,785].map(cx=>`<circle cx="${cx}" cy="-84" r="70" fill="#0a170d" stroke="${O}" stroke-width="8"/><circle cx="${cx}" cy="-84" r="38" fill="${CAR_G}" stroke="${O}" stroke-width="5"/><circle cx="${cx}" cy="-84" r="10" fill="${O}"/>`).join('')}</g>`;
 }
-function beeps(t,on){if(!on)return '';let s='';for(let i=0;i<3;i++){const ph=(t*1.6+i/3)%1,r=30+ph*90;
-  s+=`<path d="M${700-r*.3},${700-r} A${r},${r} 0 0 1 ${700+r*.8},${700-r*.4}" fill="none" stroke="${C}" stroke-width="6" stroke-linecap="round" opacity="${(1-ph)*.8}"/>`}return s}
+function beeps(t,on){if(!on)return '';let s='';for(let i=0;i<3;i++){const ph=(t*1.6+i/3)%1,r=30+ph*100;
+  s+=`<path d="M${CAR_X+560-r*.4},${520-r*.5} A${r},${r} 0 0 1 ${CAR_X+560+r*.9},${520-r*.1}" fill="none" stroke="${C}" stroke-width="7" stroke-linecap="round" opacity="${(1-ph)*.85}"/>`}return s}
+/* circuit traces from the car to the console, as in the logo */
+const TRACES=[[1000,842,'M1000,842 H1060 L1086,816 H1160'],[1012,876,'M1012,876 H1110 L1132,852 H1180'],[1040,806,'M1040,806 H1080 L1102,782 H1176']];
 function traces(t,on){
-  if(!on)return '';const path='M1176,770 H1120 L1100,790 H1072 M1176,810 H1130 L1110,830 H1068 M1176,850 H1100';
-  const pulse=(t*.8)%1;
-  return `<path d="${path}" fill="none" stroke="${O}" stroke-width="6" stroke-linecap="round"/>
-  ${[[1072,790],[1068,830],[1100,850]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="9" fill="#08130c" stroke="${O}" stroke-width="5"/>`).join('')}
-  <circle cx="${1176-pulse*104}" cy="790" r="6" fill="${C}" opacity="${1-pulse}"/>`;
+  let s='';TRACES.forEach(([x,y,d],i)=>{s+=`<path d="${d}" fill="none" stroke="${O}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${x}" cy="${y}" r="10" fill="${CAR_G}" stroke="${O}" stroke-width="5"/>`;
+    if(on){const ph=(t*.9+i/3)%1;s+=`<circle cx="${1170-ph*(1170-x)}" cy="${y-(1-ph)*0}" r="7" fill="${C}" opacity="${(1-ph).toFixed(2)}"/>`}});
+  return s;
 }
-function desk(){
-  return `<g stroke="${O}" stroke-linecap="round"><path d="M1200,728 L1188,898 M1546,728 L1558,898 M1194,836 H1552" stroke-width="10"/></g>
-  <rect x="1166" y="706" width="404" height="22" rx="8" fill="${G}" stroke="${O}" stroke-width="6"/>`;
+/* the slanted programming console from the logo (used as the table) */
+function desk(t){
+  let keys='';for(let r=0;r<4;r++)for(let c=0;c<5;c++){const x=1218+c*30+r*-16,y=760+r*30,on=((Math.floor(t*3)+r*5+c)%7===0);
+    keys+=`<rect x="${x}" y="${y}" width="20" height="13" rx="3" fill="${on?C:O}" opacity="${on?1:.85}"/>`}
+  return `<path d="M1236,696 L1518,696 L1500,900 L1138,900 Z" fill="${CAR_G}" stroke="${O}" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M1250,714 L1494,714 L1482,746 L1236,746 Z" fill="#0f3317" stroke="${O}" stroke-width="3"/>
+  <rect x="1268" y="722" width="54" height="16" rx="3" fill="${O}" opacity=".9"/><rect x="1340" y="722" width="38" height="16" rx="3" fill="${C}" opacity=".8"/>
+  ${keys}<circle cx="1420" cy="800" r="16" fill="#0f3317" stroke="${O}" stroke-width="4"/><circle cx="1446" cy="852" r="11" fill="#0f3317" stroke="${O}" stroke-width="4"/>
+  <rect x="1222" y="686" width="304" height="16" rx="6" fill="${CAR_G}" stroke="${O}" stroke-width="6"/>`;
 }
 function stool(){
-  return `<g stroke="${O}" stroke-linecap="round"><path d="M1594,800 L1584,898 M1690,800 L1702,898 M1590,856 H1696" stroke-width="9"/></g>
-  <rect x="1570" y="782" width="146" height="20" rx="9" fill="${G}" stroke="${O}" stroke-width="6"/>`;
+  return `<g stroke="${O}" stroke-linecap="round"><path d="M1590,786 L1578,898 M1694,786 L1708,898 M1584,850 H1702" stroke-width="10"/></g>
+  <rect x="1566" y="766" width="156" height="22" rx="10" fill="${CAR_G}" stroke="${O}" stroke-width="6"/>`;
 }
 function baseRadio(t,tx){
   const f=(145.5+Math.floor(t*.5)%3*.025).toFixed(3);
-  return `<g transform="translate(1214,640)"><rect x="0" y="0" width="190" height="66" rx="10" fill="${D}" stroke="${O}" stroke-width="6"/>
-  <rect x="14" y="12" width="92" height="30" rx="4" fill="${tx?O:'#7a5a2a'}"/>
-  <text x="60" y="35" direction="ltr" text-anchor="middle" font-family="monospace" font-weight="700" font-size="20" fill="${D}">${f}</text>
-  <circle cx="132" cy="33" r="16" fill="${G}" stroke="${O}" stroke-width="4"/><circle cx="168" cy="33" r="10" fill="${G}" stroke="${O}" stroke-width="4"/>
-  <path d="M16,54 h86" stroke="${C}" stroke-width="3" opacity=".5"/>
-  <path d="M0,40 C-26,48 -10,64 -34,64 C-56,64 -42,46 -60,52" fill="none" stroke="${O}" stroke-width="4"/>
-  <rect x="-80" y="34" width="26" height="34" rx="9" fill="${D}" stroke="${O}" stroke-width="4"/></g>`;
+  return `<g transform="translate(1262,620)"><rect x="0" y="0" width="176" height="66" rx="10" fill="${D}" stroke="${O}" stroke-width="6"/>
+  <rect x="12" y="12" width="88" height="30" rx="4" fill="${tx?O:'#7a5a2a'}"/>
+  <text x="56" y="35" direction="ltr" text-anchor="middle" font-family="monospace" font-weight="700" font-size="20" fill="${D}">${f}</text>
+  <circle cx="124" cy="33" r="15" fill="${G}" stroke="${O}" stroke-width="4"/><circle cx="158" cy="33" r="9" fill="${G}" stroke="${O}" stroke-width="4"/>
+  <path d="M14,54 h84" stroke="${C}" stroke-width="3" opacity=".5"/>
+  <path d="M0,40 C-24,48 -10,62 -30,62 C-48,62 -36,48 -50,52" fill="none" stroke="${O}" stroke-width="4"/>
+  <rect x="-70" y="36" width="24" height="32" rx="9" fill="${D}" stroke="${O}" stroke-width="4"/></g>`;
 }
+function laptop(t){
+  const c=(Math.sin(t*5)>0)?C:O;
+  return `<g transform="translate(1290,686)"><polygon points="0,0 120,0 112,-10 8,-10" fill="${G}" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
+  <polygon points="10,-10 30,-10 2,-96 -18,-96" fill="${G}" stroke="${O}" stroke-width="5" stroke-linejoin="round"/><circle cx="6" cy="-56" r="5" fill="${c}"/></g>`;
+}
+function brand(){return `<text x="1880" y="1036" direction="ltr" text-anchor="end" font-family="Arial Black,Arial" font-weight="900" font-size="46" fill="${C}">@Eng_<tspan fill="${O}">7Z1FT</tspan></text>`}
 
 /* ---------- director ---------- */
 const SCRIPTS={
@@ -84,22 +104,22 @@ const SCRIPTS={
     {t:2.6, pose:'sit_reach', x:SC.SEAT_X},
     {t:3.2, pose:'sit_hold',  x:SC.SEAT_X, hold:'radio', talk:1, fx:'tx'},
     {t:7.2, pose:'stand_hold',x:SC.SEAT_X, hold:'radio'},
-    {t:8.2, pose:'walk',      x:1060, hold:'radio'},
-    {t:10.2,pose:'stand_point_hold',x:1060, hold:'radio', talk:1, fx:'tower'},
-    {t:13.6,pose:'stand_hold',x:1060, hold:'radio', talk:1, fx:'tx'},
-    {t:17,  pose:'thinking',  x:1060, hold:'radio', talk:1},
-    {t:19.4,pose:'stand_hold',x:1060, hold:'radio', talk:1, fx:'tx'},
+    {t:8.2, pose:'walk',      x:960, hold:'radio'},
+    {t:10.2,pose:'stand_point_hold',x:960, hold:'radio', talk:1, fx:'tower'},
+    {t:13.6,pose:'stand_hold',x:960, hold:'radio', talk:1, fx:'tx'},
+    {t:17,  pose:'thinking',  x:960, hold:'radio', talk:1},
+    {t:19.4,pose:'stand_hold',x:960, hold:'radio', talk:1, fx:'tx'},
   ],end:22},
   car:{items:['tablet'],k:[
     {t:0,   pose:'sit_idle',  x:SC.SEAT_X, talk:1, fx:'link'},
     {t:2.6, pose:'sit_reach', x:SC.SEAT_X, fx:'link'},
     {t:3.2, pose:'sit_tablet',x:SC.SEAT_X, hold:'tablet', talk:1, fx:'link'},
     {t:7.2, pose:'stand_tablet',x:SC.SEAT_X, hold:'tablet', fx:'link'},
-    {t:8.2, pose:'walk',      x:1000, hold:'tablet', fx:'link'},
-    {t:10.4,pose:'stand_point_hold',x:1000, hold:'tablet', talk:1, fx:'link'},
-    {t:13.4,pose:'stand_tablet',x:1000, hold:'tablet', talk:1, fx:'prog'},
-    {t:17.2,pose:'celebrate', x:1000, hold:'tablet', fx:'car'},
-    {t:19.6,pose:'stand_point_hold',x:1000, hold:'tablet', talk:1, fx:'car'},
+    {t:8.2, pose:'walk',      x:880, hold:'tablet', fx:'link'},
+    {t:10.4,pose:'stand_point_hold',x:880, hold:'tablet', talk:1, fx:'link'},
+    {t:13.4,pose:'stand_tablet',x:880, hold:'tablet', talk:1, fx:'prog'},
+    {t:17.2,pose:'celebrate', x:880, hold:'tablet', fx:'car'},
+    {t:19.6,pose:'stand_point_hold',x:880, hold:'tablet', talk:1, fx:'car'},
   ],end:22},
 };
 const WALK_SPEED=300;
@@ -111,7 +131,7 @@ function rawPose(k,i,t,m){ // pose of keyframe i at time t, without blending fro
     return {P:walkPose(Math.abs(dist)*e/26),x:prevX+dist*e,f:dist<0?-1:1,dy:0};
   }
   const a=animate(POSES[K.pose],K.pose,t,K.talk?m:0);
-  return {P:a.P,x:K.x,f:K.f||(K.x>960?-1:1),dy:a.dy};
+  return {P:a.P,x:K.x,f:K.f||-1,dy:a.dy};
 }
 function scenePose(script,t,m){
   const k=script.k,i=keyAt(k,t),K=k[i],cur=rawPose(k,i,t,m);
@@ -123,14 +143,14 @@ function scenePose(script,t,m){
   return {P:lerpPose(P0.P,cur.P,e),x:lerp(P0.x,cur.x,e),f:q<.5?P0.f:cur.f,dy:lerp(P0.dy,cur.dy,e),K};
 }
 const toStage=([nx,ny],x,f,dy)=>[x+f*SC.S*(nx-300),SC.FLOOR+SC.S*(ny-680)+dy*SC.S];
-const DESK_SPOT={radio:[1487,708],tablet:[1470,704]};
+const DESK_SPOT={radio:[1478,688],tablet:[1468,672]};
 
 function sceneFrame(name,t,m,blink){
   const script=SCRIPTS[name],{P,x,f,dy,K}=scenePose(script,t,m),fx=K.fx||'';
   const tx=fx==='tx'&&m>.1,linkOn=/link|prog|car/.test(fx);
   const prog=fx==='prog'?clamp((t-K.t)/3.4):/car/.test(fx)?1:0;
   const flash=fx==='car'?Math.max(0,Math.sin(t*9)):0;
-  let s=sceneBg()+tower(t,fx==='tower'?1:tx?.6:0)+car(t,flash)+beeps(t,fx==='car')+traces(t,linkOn)+desk()+baseRadio(t,tx||fx==='tower')+stool();
+  let s=sceneBg()+tower(t,fx==='tower'?1:tx?.6:0)+car(t,flash)+beeps(t,fx==='car')+traces(t,linkOn||tx)+stool()+desk(t)+(script.items.includes('radio')?baseRadio(t,tx||fx==='tower'):laptop(t));
   const held=K.hold||null,hand=P.arms[1][2];
   for(const it of script.items){if(it===held)continue;const [ix,iy]=DESK_SPOT[it];
     s+=`<g transform="translate(${ix},${iy}) scale(${SC.S})">${ITEMS[it](t,it==='radio'?tx:prog)}</g>`;
@@ -141,6 +161,6 @@ function sceneFrame(name,t,m,blink){
   SCALE=SC.S;s+=place(engineProps+figure(P,blink,K.talk?m:0)+item,x,SC.FLOOR+dy*SC.S,f);
   if(tx)for(let i=0;i<2;i++){const [ax,ay]=toStage([hand[0]+9,hand[1]-130],x,f,dy),ph=(t*2+i/2)%1,r=14+ph*50;
     s+=`<circle cx="${ax}" cy="${ay}" r="${r}" fill="none" stroke="${O}" stroke-width="5" opacity="${(1-ph)*.9}"/>`}
-  return s+`<text x="1880" y="1050" direction="ltr" text-anchor="end" font-family="Arial Black,Arial" font-weight="900" font-size="40" fill="${O}">7Z1FT</text>`;
+  return s+brand();
 }
-function cable([x,y]){return `<path d="M${x},${y} C${x-60},${y+160} 820,${SC.FLOOR+20} 770,${SC.FLOOR-62}" fill="none" stroke="#0a1a0e" stroke-width="9"/><path d="M${x},${y} C${x-60},${y+160} 820,${SC.FLOOR+20} 770,${SC.FLOOR-62}" fill="none" stroke="${O}" stroke-width="3"/><rect x="752" y="${SC.FLOOR-74}" width="30" height="20" rx="4" fill="${D}" stroke="${O}" stroke-width="3"/>`}
+function cable([x,y]){return `<path d="M${x},${y} C${x-60},${y+180} 760,${SC.FLOOR+20} 700,${SC.FLOOR-110}" fill="none" stroke="#0a1a0e" stroke-width="9"/><path d="M${x},${y} C${x-60},${y+180} 760,${SC.FLOOR+20} 700,${SC.FLOOR-110}" fill="none" stroke="${O}" stroke-width="3"/><rect x="684" y="${SC.FLOOR-122}" width="30" height="20" rx="4" fill="${D}" stroke="${O}" stroke-width="3"/>`}

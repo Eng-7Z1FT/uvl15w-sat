@@ -174,7 +174,7 @@ function sceneFrame(name,t,m,blink){
   const prog=fx==='prog'?clamp((t-K.t)/3.4):/car/.test(fx)?1:0;
   const flash=fx==='car'?Math.max(0,Math.sin(t*9)):0;
   let s=`<defs><radialGradient id="glow"><stop offset="0" stop-color="#fff6d8" stop-opacity=".95"/><stop offset="1" stop-color="#fff6d8" stop-opacity="0"/></radialGradient></defs>
-  <rect y="${SC.FLOOR-14}" width="1920" height="${1094-SC.FLOOR}" fill="${SC.GROUND}"/><image href="${SC.BG}" x="0" y="0" width="1920" height="1080"/><rect x="1450" y="${SC.FLOOR-14}" width="470" height="${1094-SC.FLOOR}" fill="${SC.GROUND}"/>`
+  <image href="${SC.BG}" x="0" y="0" width="1920" height="1080"/><rect y="${SC.FLOOR-14}" width="1920" height="${1094-SC.FLOOR}" fill="${SC.GROUND}"/><image href="assets/tyre_patch.png" x="573" y="941" width="360" height="35"/>`
     +logoFx(t,{boost:0,flash,link:linkOn})+beeps(t,fx==='car')+logoFurniture();
   if(script.items.includes('radio'))s+=`<g transform="translate(1215,688) scale(.98)">${baseRadio(t,tx||fx==='tower').replace('translate(1262,620)','translate(0,0)')}</g>`;
   const held=K.hold||null,hand=P.arms[1][2];

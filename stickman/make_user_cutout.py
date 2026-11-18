@@ -26,7 +26,8 @@ area = out[ty - 30:ty + tpl.shape[0] + 30, tx - 30:tx + tpl.shape[1] + 30, :3]
 res = cv2.matchTemplate(area, tpl, cv2.TM_CCOEFF_NORMED); _, sc, _, (mx, my) = cv2.minMaxLoc(res)
 dx, dy = mx - 30, my - 30; print('offset', dx, dy, round(sc, 3))
 y0, x0 = y0 + dy, x0 + dx
-out[y0:y0 + strip.shape[0], x0:x0 + strip.shape[1], :3] = strip
-out[y0:y0 + strip.shape[0], x0:x0 + strip.shape[1], 3] = 255
-# white speck next to the tyre: covered by starting the logo strip a few rows higher (842)
+# saved as its own layer drawn ABOVE the ground band: only the tyre's green pixels
+g = strip.astype(np.int16); green = ((g[..., 1] > 35) & (g[..., 1] - g[..., 2] > 15)).astype(np.uint8) * 255
+green = cv2.GaussianBlur(green, (3, 3), 0)
+cv2.imwrite('assets/tyre_patch.png', np.dstack([strip, green])); print('tyre patch at', x0, y0, strip.shape[1], strip.shape[0])
 cv2.imwrite('assets/logo_cutout.png', out)

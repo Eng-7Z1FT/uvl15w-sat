@@ -1,7 +1,7 @@
 /* 7Z1FT desk scene (inspired by the logo): tower, car, desk with radios / tablet,
    stool, and a director that plays a keyframe script for the character.
    Needs engine.js loaded first. Stage is 1920x1080, floor at y=900. */
-const SC={W:1920,H:1080,FLOOR:900,S:1.05,SEAT_X:1648};
+const SC={W:1920,H:1080,FLOOR:976,S:1.19,SEAT_X:1625,BG:'assets/logo_scene.jpg'};
 
 /* ---------- held / desk items (drawn in character-native units, origin = grip) ---------- */
 function itemRadio(t,tx){
@@ -58,7 +58,7 @@ function car(t,flash){
   ${[233,785].map(cx=>`<circle cx="${cx}" cy="-84" r="70" fill="#0a170d" stroke="${O}" stroke-width="8"/><circle cx="${cx}" cy="-84" r="38" fill="${CAR_G}" stroke="${O}" stroke-width="5"/><circle cx="${cx}" cy="-84" r="10" fill="${O}"/>`).join('')}</g>`;
 }
 function beeps(t,on){if(!on)return '';let s='';for(let i=0;i<3;i++){const ph=(t*1.6+i/3)%1,r=30+ph*100;
-  s+=`<path d="M${CAR_X+560-r*.4},${520-r*.5} A${r},${r} 0 0 1 ${CAR_X+560+r*.9},${520-r*.1}" fill="none" stroke="${C}" stroke-width="7" stroke-linecap="round" opacity="${(1-ph)*.85}"/>`}return s}
+  s+=`<path d="M${760-r*.4},${560-r*.5} A${r},${r} 0 0 1 ${760+r*.9},${560-r*.1}" fill="none" stroke="${C}" stroke-width="7" stroke-linecap="round" opacity="${(1-ph)*.85}"/>`}return s}
 /* circuit traces from the car to the console, as in the logo */
 const TRACES=[[1000,842,'M1000,842 H1060 L1086,816 H1160'],[1012,876,'M1012,876 H1110 L1132,852 H1180'],[1040,806,'M1040,806 H1080 L1102,782 H1176']];
 function traces(t,on){
@@ -104,22 +104,22 @@ const SCRIPTS={
     {t:2.6, pose:'sit_reach', x:SC.SEAT_X},
     {t:3.2, pose:'sit_hold',  x:SC.SEAT_X, hold:'radio', talk:1, fx:'tx'},
     {t:7.2, pose:'stand_hold',x:SC.SEAT_X, hold:'radio'},
-    {t:8.2, pose:'walk',      x:960, hold:'radio'},
-    {t:10.2,pose:'stand_point_hold',x:960, hold:'radio', talk:1, fx:'tower'},
-    {t:13.6,pose:'stand_hold',x:960, hold:'radio', talk:1, fx:'tx'},
-    {t:17,  pose:'thinking',  x:960, hold:'radio', talk:1},
-    {t:19.4,pose:'stand_hold',x:960, hold:'radio', talk:1, fx:'tx'},
+    {t:8.2, pose:'walk',      x:1120, hold:'radio'},
+    {t:10.2,pose:'stand_point_hold',x:1120, hold:'radio', talk:1, fx:'tower'},
+    {t:13.6,pose:'stand_hold',x:1120, hold:'radio', talk:1, fx:'tx'},
+    {t:17,  pose:'thinking',  x:1120, hold:'radio', talk:1},
+    {t:19.4,pose:'stand_hold',x:1120, hold:'radio', talk:1, fx:'tx'},
   ],end:22},
   car:{items:['tablet'],k:[
     {t:0,   pose:'sit_idle',  x:SC.SEAT_X, talk:1, fx:'link'},
     {t:2.6, pose:'sit_reach', x:SC.SEAT_X, fx:'link'},
     {t:3.2, pose:'sit_tablet',x:SC.SEAT_X, hold:'tablet', talk:1, fx:'link'},
     {t:7.2, pose:'stand_tablet',x:SC.SEAT_X, hold:'tablet', fx:'link'},
-    {t:8.2, pose:'walk',      x:880, hold:'tablet', fx:'link'},
-    {t:10.4,pose:'stand_point_hold',x:880, hold:'tablet', talk:1, fx:'link'},
-    {t:13.4,pose:'stand_tablet',x:880, hold:'tablet', talk:1, fx:'prog'},
-    {t:17.2,pose:'celebrate', x:880, hold:'tablet', fx:'car'},
-    {t:19.6,pose:'stand_point_hold',x:880, hold:'tablet', talk:1, fx:'car'},
+    {t:8.2, pose:'walk',      x:960, hold:'tablet', fx:'link'},
+    {t:10.4,pose:'stand_point_hold',x:960, hold:'tablet', talk:1, fx:'link'},
+    {t:13.4,pose:'stand_tablet',x:960, hold:'tablet', talk:1, fx:'prog'},
+    {t:17.2,pose:'celebrate', x:960, hold:'tablet', fx:'car'},
+    {t:19.6,pose:'stand_point_hold',x:960, hold:'tablet', talk:1, fx:'car'},
   ],end:22},
 };
 const WALK_SPEED=300;
@@ -143,18 +143,39 @@ function scenePose(script,t,m){
   return {P:lerpPose(P0.P,cur.P,e),x:lerp(P0.x,cur.x,e),f:q<.5?P0.f:cur.f,dy:lerp(P0.dy,cur.dy,e),K};
 }
 const toStage=([nx,ny],x,f,dy)=>[x+f*SC.S*(nx-300),SC.FLOOR+SC.S*(ny-680)+dy*SC.S];
-const DESK_SPOT={radio:[1478,688],tablet:[1468,672]};
+const DESK_SPOT={radio:[1420,748],tablet:[1420,700]};
 
+/* overlays that sit on the logo background (stage coords measured on assets/logo_scene.jpg) */
+const LOGO={tower:[408,462],lights:[[273,793],[540,800]],nodes:[[1003,800],[978,893],[931,940]],port:[890,905]};
+function logoFx(t,{boost=0,flash=0,link=false}){
+  let s='';const [tx,ty]=LOGO.tower;
+  if(boost>0)for(let i=0;i<3;i++){const ph=(t*1.3+i/3)%1,r=150+ph*150;
+    for(const dir of [-1,1])s+=`<path d="M${tx+dir*r*.5},${ty-r*.86} A${r},${r} 0 0 ${dir>0?1:0} ${tx+dir*r*.5},${ty+r*.86}" fill="none" stroke="${O}" stroke-width="12" stroke-linecap="round" opacity="${((1-ph)*.7*boost).toFixed(2)}"/>`}
+  if(flash>0)for(const [x,y] of LOGO.lights)s+=`<circle cx="${x}" cy="${y}" r="${60+flash*70}" fill="url(#glow)" opacity="${flash.toFixed(2)}"/>`;
+  if(link)LOGO.nodes.forEach(([x,y],i)=>{const ph=(t*.9+i/3)%1;s+=`<circle cx="${x}" cy="${y}" r="${10+ph*18}" fill="none" stroke="${C}" stroke-width="4" opacity="${(1-ph).toFixed(2)}"/>`});
+  return s;
+}
+function logoFurniture(){
+  return `<path d="M1345,752 L1214,968" stroke="#0b1d10" stroke-width="12" stroke-linecap="round"/>
+  <path d="M1452,762 V974" stroke="#0b1d10" stroke-width="12" stroke-linecap="round"/><path d="M1452,766 V970" stroke="${O}" stroke-width="4" stroke-linecap="round"/>
+  <rect x="1168" y="746" width="304" height="18" rx="5" fill="#1d5527" stroke="#0b1d10" stroke-width="6"/><path d="M1174,748 H1466" stroke="${O}" stroke-width="4" stroke-linecap="round"/>
+  <path d="M1578,846 L1566,974 M1690,846 L1704,974 M1572,912 H1698" stroke="#0b1d10" stroke-width="13" stroke-linecap="round"/>
+  <path d="M1578,850 L1568,970 M1690,850 L1702,970" stroke="${O}" stroke-width="4" stroke-linecap="round"/>
+  <rect x="1556" y="828" width="160" height="22" rx="9" fill="#1d5527" stroke="#0b1d10" stroke-width="6"/><path d="M1564,830 H1708" stroke="${O}" stroke-width="4" stroke-linecap="round"/>`;
+}
 function sceneFrame(name,t,m,blink){
   const script=SCRIPTS[name],{P,x,f,dy,K}=scenePose(script,t,m),fx=K.fx||'';
   const tx=fx==='tx'&&m>.1,linkOn=/link|prog|car/.test(fx);
   const prog=fx==='prog'?clamp((t-K.t)/3.4):/car/.test(fx)?1:0;
   const flash=fx==='car'?Math.max(0,Math.sin(t*9)):0;
-  let s=sceneBg()+tower(t,fx==='tower'?1:tx?.6:0)+car(t,flash)+beeps(t,fx==='car')+traces(t,linkOn||tx)+stool()+desk(t)+(script.items.includes('radio')?baseRadio(t,tx||fx==='tower'):laptop(t));
+  let s=`<defs><radialGradient id="glow"><stop offset="0" stop-color="#fff6d8" stop-opacity=".95"/><stop offset="1" stop-color="#fff6d8" stop-opacity="0"/></radialGradient></defs>
+  <image href="${SC.BG}" x="0" y="0" width="1920" height="1080"/>`
+    +logoFx(t,{boost:fx==='tower'?1:tx?.5:0,flash,link:linkOn||tx})+beeps(t,fx==='car')+logoFurniture();
+  if(script.items.includes('radio'))s+=`<g transform="translate(1215,688) scale(.98)">${baseRadio(t,tx||fx==='tower').replace('translate(1262,620)','translate(0,0)')}</g>`;
   const held=K.hold||null,hand=P.arms[1][2];
   for(const it of script.items){if(it===held)continue;const [ix,iy]=DESK_SPOT[it];
     s+=`<g transform="translate(${ix},${iy}) scale(${SC.S})">${ITEMS[it](t,it==='radio'?tx:prog)}</g>`;
-    if(it==='tablet'&&linkOn)s+=cable([ix,iy-20])}
+    if(it==='tablet'&&linkOn)s+=cable([ix,iy+30])}
   if(held==='tablet'&&linkOn)s+=cable(toStage(hand,x,f,dy));
   const item=held?`<g transform="translate(${hand[0]},${hand[1]})">${ITEMS[held](t,held==='radio'?tx:prog)}</g>`:'';
   const engineProps=/^(sit|stand)_|walk/.test(K.pose)?'':props(P.props,t,f<0);
@@ -163,4 +184,4 @@ function sceneFrame(name,t,m,blink){
     s+=`<circle cx="${ax}" cy="${ay}" r="${r}" fill="none" stroke="${O}" stroke-width="5" opacity="${(1-ph)*.9}"/>`}
   return s+brand();
 }
-function cable([x,y]){return `<path d="M${x},${y} C${x-60},${y+180} 760,${SC.FLOOR+20} 700,${SC.FLOOR-110}" fill="none" stroke="#0a1a0e" stroke-width="9"/><path d="M${x},${y} C${x-60},${y+180} 760,${SC.FLOOR+20} 700,${SC.FLOOR-110}" fill="none" stroke="${O}" stroke-width="3"/><rect x="684" y="${SC.FLOOR-122}" width="30" height="20" rx="4" fill="${D}" stroke="${O}" stroke-width="3"/>`}
+function cable([x,y]){return `<path d="M${x},${y} C${x-60},${y+200} 940,${SC.FLOOR+10} ${LOGO.port[0]},${LOGO.port[1]}" fill="none" stroke="#0a1a0e" stroke-width="9"/><path d="M${x},${y} C${x-60},${y+200} 940,${SC.FLOOR+10} ${LOGO.port[0]},${LOGO.port[1]}" fill="none" stroke="${O}" stroke-width="3"/><rect x="${LOGO.port[0]-15}" y="${LOGO.port[1]-10}" width="30" height="20" rx="4" fill="${D}" stroke="${O}" stroke-width="3"/>`}
